@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
 
   <script>
     tailwind.config = {
@@ -69,6 +69,7 @@
       background: #53428B;
     }
     /* Active Nav curved terracotta underline matching reference */
+    .nav-btn { white-space: nowrap; }
     .nav-link-active {
       color: #231F2E !important;
       font-weight: 600;
@@ -115,6 +116,27 @@
       transform: scale(0.98);
       filter: grayscale(30%);
     }
+    /* --- Aksesibilitas --- */
+    :focus-visible { outline: 2px solid #53428B; outline-offset: 2px; border-radius: 8px; }
+    input:focus-visible, textarea:focus-visible, select:focus-visible { outline-offset: 1px; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    }
+    /* --- Dasbor staf --- */
+    .staff-nav-btn { color: rgba(247,243,235,.72); }
+    .staff-nav-btn:hover { background: rgba(255,255,255,.07); color: #fff; }
+    .staff-nav-btn.active { background: rgba(255,255,255,.14); color: #fff; font-weight: 600; }
+    .switch { position: relative; width: 40px; height: 24px; border-radius: 999px; background: #D5CBBF; transition: background .2s; flex-shrink: 0; }
+    .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+    .switch[aria-checked="true"] { background: #53428B; }
+    .switch[aria-checked="true"]::after { transform: translateX(16px); }
+    .bar-track { height: 8px; border-radius: 999px; background: #EFEAE0; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 999px; background: #53428B; transition: width .5s cubic-bezier(.16,1,.3,1); }
+    .bar-fill.warn { background: #C87A48; }
+    .staff-privacy .sensitive-data { filter: blur(6px); user-select: none; transition: filter .2s; }
+    .staff-privacy .sensitive-data:hover { filter: blur(1.5px); }
+    .scroll-x-hide::-webkit-scrollbar { display: none; }
+    .modal-card { animation: fadeIn .22s ease-out forwards; }
   </style>
 </head>
 <body class="antialiased selection:bg-selaksana-plum selection:text-white">
@@ -163,12 +185,12 @@
         </div>
         <div>
           <span class="block font-serif font-semibold text-[19px] tracking-tight text-selaksana-ink leading-none">Selaksana</span>
-          <span class="block text-[11px] text-selaksana-muted mt-1">Biro Konsultasi Psikologi</span>
+          <span class="hidden sm:block text-[11px] text-selaksana-muted mt-1">Biro Konsultasi Psikologi</span>
         </div>
       </button>
 
       <!-- Center Navigation Links (Sesuai IA & Referensi Gambar 1-5) -->
-      <nav class="hidden lg:flex items-center gap-6 text-[13.5px] text-selaksana-muted">
+      <nav class="hidden xl:flex items-center gap-5 text-[13.5px] text-selaksana-muted">
         <button onclick="switchPage('beranda')" data-nav="beranda" class="nav-btn nav-link-active py-1 hover:text-selaksana-ink transition">
           Beranda
         </button>
@@ -243,25 +265,29 @@
 
       <!-- Right Action Buttons: Portal Klien/Staf & Primary Pill CTA [Buat Janji Temu] -->
       <div class="flex items-center gap-3">
-        <button onclick="switchPage('portal')" data-nav="portal" class="nav-btn hidden sm:inline-flex items-center gap-2 text-[13px] font-medium text-selaksana-ink/80 hover:text-selaksana-plum px-2.5 py-1.5 rounded-lg transition">
-          <span>Portal klien / staf</span>
-          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+        <button onclick="switchPage('portal')" data-nav="portal" title="Portal klien" aria-label="Portal klien" class="nav-btn hidden md:inline-flex items-center gap-2 text-[13px] font-medium text-selaksana-ink/80 hover:text-selaksana-plum px-2.5 py-1.5 rounded-lg transition">
+          <i data-lucide="user-round" class="w-4 h-4"></i>
+          <span class="hidden 2xl:inline">Portal klien</span>
+        </button>
+        <button onclick="switchPage('staf')" data-nav="staf" title="Dasbor staf" aria-label="Dasbor staf" class="nav-btn hidden md:inline-flex items-center gap-2 text-[13px] font-medium text-selaksana-ink/80 hover:text-selaksana-plum px-2.5 py-1.5 rounded-lg transition">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span class="hidden 2xl:inline">Dasbor staf</span>
         </button>
 
-        <button onclick="openBookingModal()" class="inline-flex items-center gap-2 bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-[13px] font-semibold px-5 py-2.5 rounded-full shadow-sm transition transform active:scale-95">
+        <button onclick="openBookingModal()" class="inline-flex items-center gap-2 whitespace-nowrap bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-[13px] font-semibold px-4 sm:px-5 py-2.5 rounded-full shadow-sm transition transform active:scale-95">
           <i data-lucide="calendar-plus" class="w-4 h-4"></i>
-          <span>Buat Janji Temu</span>
+          <span class="hidden sm:inline">Buat Janji Temu</span><span class="sm:hidden">Janji Temu</span>
         </button>
 
         <!-- Mobile Menu Trigger -->
-        <button onclick="toggleMobileMenu()" class="lg:hidden p-2 rounded-xl border border-selaksana-border text-selaksana-ink hover:bg-selaksana-subtle" aria-label="Menu">
+        <button onclick="toggleMobileMenu()" class="xl:hidden p-2 rounded-xl border border-selaksana-border text-selaksana-ink hover:bg-selaksana-subtle" aria-label="Menu">
           <i data-lucide="menu" class="w-5 h-5"></i>
         </button>
       </div>
     </div>
 
     <!-- Mobile Navigation Drawer -->
-    <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-selaksana-border px-4 pt-3 pb-6 space-y-2 shadow-lg">
+    <div id="mobile-menu" class="hidden xl:hidden bg-white border-b border-selaksana-border px-4 pt-3 pb-6 space-y-2 shadow-lg">
       <div class="grid grid-cols-2 gap-2 text-xs font-medium">
         <button onclick="switchPage('beranda'); toggleMobileMenu()" class="text-left px-3 py-2.5 rounded-xl hover:bg-selaksana-bg">Beranda</button>
         <button onclick="switchPage('tentang'); toggleMobileMenu()" class="text-left px-3 py-2.5 rounded-xl hover:bg-selaksana-bg">Tentang Kami</button>
@@ -270,7 +296,8 @@
         <button onclick="switchPage('biaya'); toggleMobileMenu()" class="text-left px-3 py-2.5 rounded-xl hover:bg-selaksana-bg">Biaya & Jadwal</button>
         <button onclick="switchPage('edukasi'); toggleMobileMenu()" class="text-left px-3 py-2.5 rounded-xl hover:bg-selaksana-bg">Artikel & Edukasi</button>
         <button onclick="switchPage('kontak'); toggleMobileMenu()" class="text-left px-3 py-2.5 rounded-xl hover:bg-selaksana-bg">Kontak & Lokasi</button>
-        <button onclick="switchPage('portal'); toggleMobileMenu()" class="text-left px-3 py-2.5 rounded-xl bg-selaksana-plumLight text-selaksana-plum font-semibold">Portal Klien / Staf</button>
+        <button onclick="switchPage('portal'); toggleMobileMenu()" class="text-left px-3 py-2.5 rounded-xl bg-selaksana-plumLight text-selaksana-plum font-semibold">Portal Klien</button>
+        <button onclick="switchPage('staf'); toggleMobileMenu()" class="text-left px-3 py-2.5 rounded-xl bg-selaksana-crisis text-white font-semibold">Dasbor Staf</button>
       </div>
     </div>
   </header>
@@ -310,10 +337,10 @@
                   <i data-lucide="calendar-plus" class="w-4 h-4"></i>
                   <span>Buat Janji Temu</span>
                 </button>
-                <a href="#seksi-tiga-layanan" class="inline-flex items-center gap-2 text-sm font-semibold text-selaksana-ink hover:text-selaksana-plum transition">
+                <button type="button" onclick="scrollToId('seksi-tiga-layanan')" class="inline-flex items-center gap-2 text-sm font-semibold text-selaksana-ink hover:text-selaksana-plum transition">
                   <span>Lihat jenis layanan</span>
                   <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                </a>
+                </button>
               </div>
 
               <!-- Bottom Stats Row (4 Psikolog Berlisensi | 3 Jenis Layanan | Online & luring) -->
@@ -337,78 +364,49 @@
             <div class="lg:col-span-5 relative">
               <!-- Soft Lavender Rotated Backdrop Card -->
               <div class="absolute inset-0 bg-[#E6E0F2] rounded-3xl transform rotate-2 translate-y-2 translate-x-1 pointer-events-none"></div>
-              
-              <!-- Main White Schedule Card -->
+
+              <!-- Kartu: cara biro memasangkan psikolog -->
               <div class="relative bg-white rounded-3xl p-6 sm:p-7 border border-selaksana-border shadow-schedule space-y-5">
-                <div class="flex items-center justify-between">
+                <div class="flex items-start justify-between gap-3">
                   <div>
-                    <h2 class="text-sm font-bold text-selaksana-ink">Jadwal terdekat</h2>
-                    <span class="text-[11px] text-selaksana-muted">Klik slot untuk memilih langsung</span>
+                    <h2 class="text-sm font-bold text-selaksana-ink">Psikolog dipilihkan oleh biro</h2>
+                    <span class="block text-[11px] text-selaksana-muted mt-0.5">Kamu cukup ceritakan kebutuhan dan waktu yang cocok</span>
                   </div>
-                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
+                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full shrink-0">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Tersedia
+                    Menerima klien
                   </span>
                 </div>
 
-                <!-- Interactive Schedule Slots (Klik untuk langsung pilih jadwal psikolog + prefill slot) -->
-                <div class="divide-y divide-selaksana-border/80">
-                  
-                  <!-- Slot 1: Nuury Rahmadini Sawitry -->
-                  <button onclick="openBookingWithSlot('Nuury Rahmadini Sawitry, S.Psi., Psikolog', 'Online (Google Meet)', 'Rabu, 18 Juni · 10.30 WIB')" class="w-full py-3.5 flex items-center justify-between gap-3 text-left group hover:bg-selaksana-bg/60 -mx-2 px-2 rounded-xl transition cursor-pointer">
+                <ol class="space-y-4">
+                  <li class="flex items-start gap-3.5">
+                    <span class="w-8 h-8 rounded-full bg-selaksana-plumLight text-selaksana-plum flex items-center justify-center shrink-0"><i data-lucide="message-square-text" class="w-4 h-4"></i></span>
                     <div>
-                      <p class="text-sm font-semibold text-selaksana-ink group-hover:text-selaksana-plum transition">
-                        Nuury Rahmadini Sawitry, S.Psi., Psikolog
-                      </p>
-                      <p class="text-xs text-selaksana-muted mt-0.5">Rabu, 18 Juni · 10.30 WIB</p>
+                      <p class="text-sm font-semibold text-selaksana-ink">Kamu mengisi kebutuhan</p>
+                      <p class="text-xs text-selaksana-muted leading-relaxed">Jenis layanan, topik utama, dan preferensi hari serta jam.</p>
                     </div>
-                    <span class="shrink-0 px-3 py-1 rounded-full bg-selaksana-subtle text-selaksana-ink text-xs font-medium group-hover:bg-selaksana-plum group-hover:text-white transition">
-                      Online
-                    </span>
-                  </button>
-
-                  <!-- Slot 2: Adhitya Pramudya Wardani -->
-                  <button onclick="openBookingWithSlot('Adhitya Pramudya Wardani, S.Psi., Psikolog', 'Tatap Muka di Ruang Asoka Bandung', 'Rabu, 18 Juni · 15.30 WIB')" class="w-full py-3.5 flex items-center justify-between gap-3 text-left group hover:bg-selaksana-bg/60 -mx-2 px-2 rounded-xl transition cursor-pointer">
+                  </li>
+                  <li class="flex items-start gap-3.5">
+                    <span class="w-8 h-8 rounded-full bg-selaksana-plumLight text-selaksana-plum flex items-center justify-center shrink-0"><i data-lucide="users-round" class="w-4 h-4"></i></span>
                     <div>
-                      <p class="text-sm font-semibold text-selaksana-ink group-hover:text-selaksana-plum transition">
-                        Adhitya Pramudya Wardani, S.Psi., Psikolog
-                      </p>
-                      <p class="text-xs text-selaksana-muted mt-0.5">Rabu, 18 Juni · 15.30 WIB</p>
+                      <p class="text-sm font-semibold text-selaksana-ink">Biro mencocokkan psikolog</p>
+                      <p class="text-xs text-selaksana-muted leading-relaxed">Berdasarkan keahlian, kecocokan topik, dan ketersediaan jadwal tim.</p>
                     </div>
-                    <span class="shrink-0 px-3 py-1 rounded-full bg-selaksana-subtle text-selaksana-ink text-xs font-medium group-hover:bg-selaksana-plum group-hover:text-white transition">
-                      Tatap muka
-                    </span>
-                  </button>
-
-                  <!-- Slot 3: Salma Nur Fadhilah -->
-                  <button onclick="openBookingWithSlot('Salma Nur Fadhilah, S.Psi., Psikolog', 'Online (Google Meet)', 'Kamis, 19 Juni · 13.00 WIB')" class="w-full py-3.5 flex items-center justify-between gap-3 text-left group hover:bg-selaksana-bg/60 -mx-2 px-2 rounded-xl transition cursor-pointer">
+                  </li>
+                  <li class="flex items-start gap-3.5">
+                    <span class="w-8 h-8 rounded-full bg-selaksana-plumLight text-selaksana-plum flex items-center justify-center shrink-0"><i data-lucide="message-circle" class="w-4 h-4"></i></span>
                     <div>
-                      <p class="text-sm font-semibold text-selaksana-ink group-hover:text-selaksana-plum transition">
-                        Salma Nur Fadhilah, S.Psi., Psikolog
-                      </p>
-                      <p class="text-xs text-selaksana-muted mt-0.5">Kamis, 19 Juni · 13.00 WIB</p>
+                      <p class="text-sm font-semibold text-selaksana-ink">Kamu menerima konfirmasi</p>
+                      <p class="text-xs text-selaksana-muted leading-relaxed">Nama psikolog, jadwal pasti, dan detail pembayaran dikirim lewat WhatsApp.</p>
                     </div>
-                    <span class="shrink-0 px-3 py-1 rounded-full bg-selaksana-subtle text-selaksana-ink text-xs font-medium group-hover:bg-selaksana-plum group-hover:text-white transition">
-                      Online
-                    </span>
-                  </button>
+                  </li>
+                </ol>
 
-                  <!-- Slot 4: Rezky Ananda Putri -->
-                  <button onclick="openBookingWithSlot('Rezky Ananda Putri, S.Psi., Psikolog', 'Online (Google Meet)', 'Jumat, 20 Juni · 16.00 WIB')" class="w-full py-3.5 flex items-center justify-between gap-3 text-left group hover:bg-selaksana-bg/60 -mx-2 px-2 rounded-xl transition cursor-pointer">
-                    <div>
-                      <p class="text-sm font-semibold text-selaksana-ink group-hover:text-selaksana-plum transition">
-                        Rezky Ananda Putri, S.Psi., Psikolog
-                      </p>
-                      <p class="text-xs text-selaksana-muted mt-0.5">Jumat, 20 Juni · 16.00 WIB</p>
-                    </div>
-                    <span class="shrink-0 px-3 py-1 rounded-full bg-selaksana-subtle text-selaksana-ink text-xs font-medium group-hover:bg-selaksana-plum group-hover:text-white transition">
-                      Online
-                    </span>
-                  </button>
+                <button onclick="openBookingModal()" class="w-full inline-flex items-center justify-center gap-2 bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-sm font-semibold px-5 py-3 rounded-full transition">
+                  <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                  <span>Ajukan janji temu</span>
+                </button>
 
-                </div>
-
-                <!-- Privacy Reassurance Box inside Schedule Card -->
                 <div class="bg-selaksana-subtle/90 rounded-2xl p-4 flex items-start gap-3">
                   <i data-lucide="lock" class="w-4 h-4 text-selaksana-plum shrink-0 mt-0.5"></i>
                   <p class="text-xs text-selaksana-muted leading-relaxed">
@@ -519,7 +517,7 @@
                 Yang bisa kami bantu
               </h2>
               <p class="text-sm sm:text-base text-selaksana-muted leading-relaxed">
-                Tidak perlu menunggu kondisi berat untuk mencari bantuan. Empat area ini paling sering dibawa klien kami. Klik topik untuk menyorot psikolog yang relevan.
+                Tidak perlu menunggu kondisi berat untuk mencari bantuan. Empat area ini paling sering dibawa klien kami. Klik topik untuk melihat keahlian tim yang relevan.
               </p>
               <div id="filter-feedback" class="hidden p-3.5 rounded-2xl bg-selaksana-plumLight border border-selaksana-plum/30 text-xs text-selaksana-plum font-semibold flex items-center justify-between gap-2">
                 <span id="filter-feedback-text">Menyorot psikolog relevan...</span>
@@ -588,8 +586,8 @@
               <!-- Interactive Recommendation Drawer under the 4 cards -->
               <div id="issue-recommendation-banner" class="bg-selaksana-subtle/90 rounded-2xl p-4 sm:px-5 border border-selaksana-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                 <div>
-                  <span class="font-bold text-selaksana-plum" id="rec-area-title">Rekomendasi untuk Kecemasan &amp; Depresi:</span>
-                  <span class="text-selaksana-muted ml-1" id="rec-area-desc">Konseling Individu (Online/Tatap Muka 60 menit) bersama <strong>Nuury Rahmadini Sawitry, S.Psi., Psikolog</strong>.</span>
+                  <span class="font-bold text-selaksana-plum" id="rec-area-title">Untuk kecemasan &amp; depresi:</span>
+                  <span class="text-selaksana-muted ml-1" id="rec-area-desc">Biasanya didampingi psikolog dengan keahlian CBT/ACT, misalnya <strong>Nuury Rahmadini Sawitry, S.Psi., Psikolog</strong>. Biro menentukan psikolog final sesuai ketersediaan.</span>
                 </div>
                 <button onclick="triggerRecommendedBooking()" class="shrink-0 px-4 py-2 rounded-full bg-selaksana-plum text-white font-semibold hover:bg-selaksana-plumDark transition cursor-pointer">
                   Jadwalkan topik ini →
@@ -623,6 +621,10 @@
                 <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
               </button>
             </div>
+          </div>
+          <div class="flex items-start gap-3 p-4 rounded-2xl bg-selaksana-plumLight/60 border border-selaksana-plum/15 -mt-4 mb-8 max-w-2xl">
+            <i data-lucide="users-round" class="w-4 h-4 text-selaksana-plum shrink-0 mt-0.5"></i>
+            <p class="text-xs text-selaksana-ink/85 leading-relaxed">Psikolog ditentukan oleh biro berdasarkan topik, keahlian, dan ketersediaan jadwal. Kamu tidak perlu memilih, cukup ajukan kebutuhanmu.</p>
           </div>
 
           <!-- 4 Psychologist Cards Grid (NR, AP, SN, RA) -->
@@ -658,9 +660,9 @@
             <!-- Step 02 -->
             <div class="pt-5 border-t-2 border-selaksana-plum/60 space-y-2.5">
               <span class="font-serif font-bold text-xl text-selaksana-ochre block">02</span>
-              <h3 class="font-semibold text-sm text-selaksana-ink">Pilih psikolog &amp; jadwal</h3>
+              <h3 class="font-semibold text-sm text-selaksana-ink">Biro mencocokkan psikolog</h3>
               <p class="text-xs text-selaksana-muted leading-relaxed">
-                Pilih praktisi serta format sesi online atau tatap muka sesuai ketersediaan.
+                Biro mencocokkan psikolog berdasarkan topik, keahlian, dan ketersediaan, sesuai format sesi yang kamu minta.
               </p>
             </div>
 
@@ -669,7 +671,7 @@
               <span class="font-serif font-bold text-xl text-selaksana-ochre block">03</span>
               <h3 class="font-semibold text-sm text-selaksana-ink">Konfirmasi via WhatsApp</h3>
               <p class="text-xs text-selaksana-muted leading-relaxed">
-                Resepsionis menghubungi lewat WhatsApp (+62 851-6138-2920) untuk mengunci jadwal dan pembayaran.
+                Biro menentukan psikolog, lalu resepsionis menghubungi lewat WhatsApp (+62 851-6138-2920) untuk mengunci jadwal dan pembayaran.
               </p>
             </div>
 
@@ -996,7 +998,7 @@
                   Tersedia melalui Video Call privat, Voice Call (tanpa kamera), atau Chat Terjadwal bersama psikolog pilihanmu.
                 </p>
                 <ul class="text-xs text-selaksana-ink/85 space-y-2 pt-2 border-t border-selaksana-border">
-                  <li>✓ Bebas pilih 1 dari 4 Psikolog Berlisensi</li>
+                  <li>✓ Dipasangkan biro dengan psikolog yang sesuai kebutuhanmu</li>
                   <li>✓ Ringkasan refleksi pasca-sesi di Portal Klien</li>
                   <li>✓ Reschedule gratis maks. H-1 (24 jam sebelum sesi)</li>
                 </ul>
@@ -1090,6 +1092,15 @@
                   Ya, kami menerbitkan kuitansi resmi biro psikologi lengkap dengan nama terang psikolog serta nomor SIPP yang dapat dilampirkan untuk klaim tunjangan kesehatan perusahaan atau asuransi yang menanggung layanan psikologi klinis.
                 </p>
               </details>
+              <details class="group py-4">
+                <summary class="flex items-center justify-between cursor-pointer text-sm font-semibold text-selaksana-ink">
+                  <span>Bagaimana psikolog saya ditentukan? Bisakah saya memilih sendiri?</span>
+                  <i data-lucide="chevron-down" class="w-4 h-4 text-selaksana-muted group-open:rotate-180 transition"></i>
+                </summary>
+                <p class="text-xs sm:text-sm text-selaksana-muted mt-2.5 leading-relaxed">
+                  Psikolog ditentukan oleh biro, bukan dipilih klien. Kami mencocokkan topik yang kamu ajukan, keahlian tiap psikolog, dan ketersediaan jadwal. Nama psikolog dikirim lewat WhatsApp bersama konfirmasi jadwal. Jika merasa kurang cocok, sampaikan ke resepsionis dan biro akan meninjau penugasan ulang.
+                </p>
+              </details>
             </div>
           </div>
 
@@ -1123,7 +1134,7 @@
                 </p>
               </div>
               <div class="pt-5 mt-6 border-t border-selaksana-border flex items-center justify-between text-xs">
-                <span class="text-selaksana-muted">Oleh Nuury Rahmadini S., M.Psi., Psikolog</span>
+                <span class="text-selaksana-muted">Oleh Nuury Rahmadini S., S.Psi., Psikolog</span>
                 <button onclick="openArticleModal(0)" class="font-semibold text-selaksana-plum hover:underline">Baca →</button>
               </div>
             </article>
@@ -1137,7 +1148,7 @@
                 </p>
               </div>
               <div class="pt-5 mt-6 border-t border-selaksana-border flex items-center justify-between text-xs">
-                <span class="text-selaksana-muted">Oleh Adhitya Pramudya W., M.Psi., Psikolog</span>
+                <span class="text-selaksana-muted">Oleh Adhitya Pramudya W., S.Psi., Psikolog</span>
                 <button onclick="openArticleModal(1)" class="font-semibold text-selaksana-plum hover:underline">Baca →</button>
               </div>
             </article>
@@ -1151,7 +1162,7 @@
                 </p>
               </div>
               <div class="pt-5 mt-6 border-t border-selaksana-border flex items-center justify-between text-xs">
-                <span class="text-selaksana-muted">Oleh Rezky Ananda P., M.Psi., Psikolog</span>
+                <span class="text-selaksana-muted">Oleh Rezky Ananda P., S.Psi., Psikolog</span>
                 <button onclick="openArticleModal(2)" class="font-semibold text-selaksana-plum hover:underline">Baca →</button>
               </div>
             </article>
@@ -1273,200 +1284,238 @@
     </div>
 
     <!-- ===================================================================
-         PAGE 8: PORTAL KLIEN / STAF (id="portal" — Sesuai Poin 5 IA & Gambar Referensi Portal)
+         PAGE 8: PORTAL KLIEN (id="portal") — status permintaan, jadwal, dokumen, jurnal
          =================================================================== -->
     <div id="page-portal" class="page-view hidden tab-fade">
       <section class="py-10 lg:py-14">
         <div id="portal-privacy-wrapper" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          
-          <!-- Top Security & Privacy Blur Bar -->
+
           <div class="bg-white rounded-2xl p-4 sm:px-6 border border-selaksana-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="flex items-center gap-3">
               <div class="w-9 h-9 rounded-xl bg-selaksana-plumLight text-selaksana-plum flex items-center justify-center shrink-0">
-                <i data-lucide="shield-lock" class="w-5 h-5"></i>
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
               </div>
               <div>
-                <p class="text-xs font-bold text-selaksana-ink">Ruang Aman Portal Klien Selaksana (Kode Etik HIMPSI)</p>
-                <p class="text-[11px] text-selaksana-muted">Seluruh jadwal, lembar kerja mandiri, dan laporan asesmen PDF dilindungi secara privat.</p>
+                <p class="text-xs font-bold text-selaksana-ink">Ruang aman portal klien (Kode Etik HIMPSI)</p>
+                <p class="text-[11px] text-selaksana-muted">Jadwal, lembar kerja, dan laporan asesmen dilindungi secara privat.</p>
               </div>
             </div>
-            <button onclick="togglePrivacyMask()" id="privacy-toggle-btn" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-selaksana-subtle hover:bg-selaksana-plum hover:text-white text-xs font-semibold text-selaksana-ink transition self-start sm:self-auto">
+            <button onclick="togglePrivacyMask()" id="privacy-toggle-btn" aria-pressed="false" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-selaksana-subtle hover:bg-selaksana-plum hover:text-white text-xs font-semibold text-selaksana-ink transition self-start sm:self-auto">
               <i data-lucide="eye-off" class="w-3.5 h-3.5"></i>
-              <span id="privacy-toggle-label">Sembunyikan Identitas Layar</span>
+              <span id="privacy-toggle-label">Sembunyikan identitas di layar</span>
             </button>
           </div>
 
-          <!-- Greeting & Sub-Navigation Tabs (Jadwal Saya, Riwayat Sesi, Dokumen & Tugas, Pengaturan Akun) -->
           <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <span class="inline-block px-3 py-1 rounded-full bg-selaksana-plumLight text-selaksana-plum text-[11px] font-semibold mb-2">Portal Konseling Aktif</span>
+              <span id="portal-badge" class="inline-block px-3 py-1 rounded-full bg-selaksana-plumLight text-selaksana-plum text-[11px] font-semibold mb-2">Contoh tampilan</span>
               <h1 class="font-serif font-semibold text-3xl sm:text-4xl text-selaksana-ink">
-                Selamat datang, <span id="portal-alias-display" class="sensitive-data">Maya R.</span> <span class="text-sm font-sans font-normal text-selaksana-muted">(Alias Klien #SLK-4089)</span>
+                Selamat datang, <span id="portal-alias-display" class="sensitive-data">Maya R.</span>
               </h1>
             </div>
-            <div class="flex flex-wrap gap-2">
-              <a href="#portal-jadwal" class="px-3.5 py-2 rounded-full bg-selaksana-plum text-white text-xs font-semibold">1. Jadwal Saya</a>
-              <a href="#portal-dokumen" class="px-3.5 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">2. Dokumen &amp; Tugas</a>
-              <a href="#portal-riwayat" class="px-3.5 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">3. Riwayat Sesi</a>
-              <a href="#portal-pengaturan" class="px-3.5 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">4. Pengaturan Akun</a>
-            </div>
+            <nav class="flex flex-wrap gap-2" aria-label="Bagian portal">
+              <button onclick="scrollToId('portal-jadwal')" class="px-3.5 py-2 rounded-full bg-selaksana-plum text-white text-xs font-semibold">Jadwal saya</button>
+              <button onclick="scrollToId('portal-dokumen')" class="px-3.5 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">Dokumen &amp; tugas</button>
+              <button onclick="scrollToId('portal-riwayat')" class="px-3.5 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">Riwayat sesi</button>
+              <button onclick="scrollToId('portal-pengaturan')" class="px-3.5 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">Pengaturan</button>
+            </nav>
           </div>
 
-          <!-- 1. JADWAL SAYA (Active Session Ticket + Video Call Link) -->
-          <div id="portal-jadwal" class="bg-white rounded-3xl p-6 sm:p-8 border border-selaksana-border shadow-card grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            <div class="lg:col-span-8 space-y-4">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="px-3 py-1 rounded-full bg-selaksana-plum text-white text-[11px] font-semibold">SESI UTAMA BERIKUTNYA</span>
-                <span class="px-3 py-1 rounded-full bg-selaksana-subtle text-selaksana-ink text-[11px] font-medium">Konseling Individu · Sesi Ke-2</span>
-              </div>
-              <h2 class="font-serif font-semibold text-2xl text-selaksana-ink sensitive-data">
-                Manajemen Regulasi Kecemasan &amp; Pemetaan Batas Diri
-              </h2>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-1">
-                <div class="flex items-start gap-2.5">
-                  <i data-lucide="calendar" class="w-4 h-4 text-selaksana-plum shrink-0 mt-0.5"></i>
-                  <div>
-                    <p class="text-selaksana-muted">Jadwal Sesi</p>
-                    <p class="font-semibold text-selaksana-ink" id="portal-active-date">Rabu, 18 Juni · 10.30 – 11.30 WIB (60 Menit)</p>
-                  </div>
-                </div>
-                <div class="flex items-start gap-2.5">
-                  <i data-lucide="video" class="w-4 h-4 text-selaksana-plum shrink-0 mt-0.5"></i>
-                  <div>
-                    <p class="text-selaksana-muted">Format Pelaksanaan</p>
-                    <p class="font-semibold text-selaksana-ink" id="portal-active-mode">Online Video Call (Ruang Daring Privat Selaksana)</p>
-                  </div>
-                </div>
-              </div>
-              <div class="pt-3 border-t border-selaksana-border flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-selaksana-plumLight text-selaksana-plum font-serif font-bold text-sm flex items-center justify-center">
-                  NR
-                </div>
-                <div>
-                  <p class="text-xs font-semibold text-selaksana-ink" id="portal-active-psych">Nuury Rahmadini Sawitry, S.Psi., Psikolog</p>
-                  <p class="text-[11px] text-selaksana-muted">SIPP: 2023-01187 · Konseling Individu &amp; Regulasi Emosi</p>
-                </div>
-              </div>
-            </div>
+          <!-- Jadwal saya: diisi oleh JS sesuai status permintaan terbaru -->
+          <div id="portal-jadwal" class="scroll-mt-28"></div>
 
-            <div class="lg:col-span-4 bg-selaksana-bg rounded-2xl p-5 border border-selaksana-border space-y-3 text-center">
-              <p class="text-[11px] font-semibold uppercase tracking-wider text-selaksana-muted">Tautan Ruang Sesi Daring</p>
-              <button onclick="showToast('Membuka Ruang Video Call Terenkripsi Selaksana...')" class="w-full py-3 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer">
-                <i data-lucide="video" class="w-4 h-4"></i>
-                <span>Masuk Ruang Sesi Video</span>
-              </button>
-              <div class="grid grid-cols-2 gap-2 pt-1">
-                <button onclick="openBookingModal()" class="py-2 px-3 rounded-xl bg-white border border-selaksana-border text-[11px] font-semibold text-selaksana-ink hover:border-selaksana-plum cursor-pointer">
-                  Reschedule
+          <div id="portal-dokumen" class="grid grid-cols-1 lg:grid-cols-12 gap-6 scroll-mt-28">
+            <div class="lg:col-span-6 bg-white rounded-3xl p-6 sm:p-7 border border-selaksana-border shadow-card space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="font-serif font-semibold text-xl text-selaksana-ink">Jurnal refleksi mandiri</h3>
+                <span class="text-[11px] text-selaksana-muted">Hanya terlihat oleh kamu</span>
+              </div>
+              <p class="text-xs text-selaksana-muted leading-relaxed">
+                Catat perasaan dominan atau hal yang ingin dibahas pada sesi berikutnya agar sesi dimulai lebih ringan.
+              </p>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" role="group" aria-label="Suasana hati">
+                <button onclick="selectMood(this, 'Tenang')" class="mood-btn p-2.5 rounded-xl border border-selaksana-border text-xs font-medium hover:border-selaksana-plum transition inline-flex items-center justify-center gap-1.5"><i data-lucide="leaf" class="w-3.5 h-3.5"></i>Tenang</button>
+                <button onclick="selectMood(this, 'Cemas')" class="mood-btn p-2.5 rounded-xl border border-selaksana-border text-xs font-medium hover:border-selaksana-plum transition inline-flex items-center justify-center gap-1.5"><i data-lucide="cloud-rain" class="w-3.5 h-3.5"></i>Cemas</button>
+                <button onclick="selectMood(this, 'Lelah')" class="mood-btn p-2.5 rounded-xl border border-selaksana-border text-xs font-medium hover:border-selaksana-plum transition inline-flex items-center justify-center gap-1.5"><i data-lucide="moon" class="w-3.5 h-3.5"></i>Lelah</button>
+                <button onclick="selectMood(this, 'Fokus')" class="mood-btn p-2.5 rounded-xl border border-selaksana-border text-xs font-medium hover:border-selaksana-plum transition inline-flex items-center justify-center gap-1.5"><i data-lucide="sun" class="w-3.5 h-3.5"></i>Fokus</button>
+              </div>
+              <label for="reflection-note" class="sr-only">Catatan refleksi</label>
+              <textarea id="reflection-note" rows="3" placeholder="Tuliskan kata kunci atau perasaan bebas, tanpa perlu rapi." class="w-full rounded-2xl bg-selaksana-bg border border-selaksana-border p-3.5 text-xs text-selaksana-ink focus:outline-none focus:border-selaksana-plum"></textarea>
+              <div class="flex items-center justify-between gap-3">
+                <button onclick="saveReflectionJournal()" class="px-5 py-2.5 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition">
+                  Simpan catatan
                 </button>
-                <a href="https://forms.gle/rvYimyTyfMbo6yaDA" target="_blank" rel="noopener noreferrer" class="py-2 px-3 rounded-xl bg-white border border-selaksana-border text-[11px] font-semibold text-selaksana-plum hover:border-selaksana-plum inline-flex items-center justify-center gap-1">
-                  <span>Informed Consent</span>
-                  <i data-lucide="external-link" class="w-3 h-3"></i>
-                </a>
+                <span id="journal-count" class="text-[11px] text-selaksana-muted"></span>
               </div>
             </div>
-          </div>
 
-          <!-- 2. DOKUMEN & TUGAS + JURNAL REFLEKSI MANDIRI -->
-          <div id="portal-dokumen" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Left 6 Cols: Refleksi Mandiri -->
             <div class="lg:col-span-6 bg-white rounded-3xl p-6 sm:p-7 border border-selaksana-border shadow-card space-y-4">
               <div class="flex items-center justify-between">
-                <h3 class="font-serif font-semibold text-xl text-selaksana-ink">Jurnal Refleksi Mandiri</h3>
-                <span class="text-[11px] text-selaksana-muted">Privat untuk Psikolog</span>
+                <h3 class="font-serif font-semibold text-xl text-selaksana-ink">Dokumen &amp; tugas</h3>
+                <span class="text-xs font-semibold text-selaksana-plum">2 berkas contoh</span>
               </div>
               <p class="text-xs text-selaksana-muted leading-relaxed">
-                Catat perasaan dominan atau hal yang ingin dibahas pada sesi berikutnya agar energimu lebih ringan saat sesi dimulai.
+                Lembar kerja dan laporan asesmen dari psikologmu muncul di sini setelah sesi.
               </p>
-              <div class="grid grid-cols-4 gap-2">
-                <button onclick="selectMood(this, 'Tenang')" class="mood-btn p-2.5 rounded-xl border border-selaksana-border text-xs font-medium hover:border-selaksana-plum transition">🌿 Tenang</button>
-                <button onclick="selectMood(this, 'Cemas')" class="mood-btn p-2.5 rounded-xl border-2 border-selaksana-plum bg-selaksana-plumLight text-selaksana-plum text-xs font-semibold transition">🌧️ Cemas</button>
-                <button onclick="selectMood(this, 'Lelah')" class="mood-btn p-2.5 rounded-xl border border-selaksana-border text-xs font-medium hover:border-selaksana-plum transition">🌙 Lelah</button>
-                <button onclick="selectMood(this, 'Berenergi')" class="mood-btn p-2.5 rounded-xl border border-selaksana-border text-xs font-medium hover:border-selaksana-plum transition">☀️ Fokus</button>
-              </div>
-              <textarea id="reflection-note" rows="3" placeholder="Tuliskan kata kunci atau perasaan bebas tanpa perlu diedit..." class="w-full rounded-2xl bg-selaksana-bg border border-selaksana-border p-3.5 text-xs text-selaksana-ink focus:outline-none focus:border-selaksana-plum"></textarea>
-              <button onclick="saveReflectionJournal()" class="px-5 py-2.5 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition">
-                Simpan Catatan Refleksi
-              </button>
-            </div>
-
-            <!-- Right 6 Cols: Dokumen & Tugas (Worksheet & PDF Berpassword) -->
-            <div class="lg:col-span-6 bg-white rounded-3xl p-6 sm:p-7 border border-selaksana-border shadow-card space-y-4">
-              <div class="flex items-center justify-between">
-                <h3 class="font-serif font-semibold text-xl text-selaksana-ink">Dokumen &amp; Tugas</h3>
-                <span class="text-xs font-semibold text-selaksana-plum">2 Berkas Tersedia</span>
-              </div>
-              <p class="text-xs text-selaksana-muted leading-relaxed">
-                Unduh lembar kerja mandiri (<em>worksheet</em>) atau hasil tes asesmen pribadi resmi dalam format PDF berpassword.
-              </p>
-
               <div class="space-y-3 pt-1">
                 <div class="p-4 rounded-2xl bg-selaksana-bg border border-selaksana-border flex items-center justify-between gap-4">
-                  <div class="space-y-1">
-                    <p class="text-xs font-semibold text-selaksana-ink sensitive-data">Worksheet Mandiri — Pemetaan Pikiran Otomatis &amp; Grounding</p>
-                    <p class="text-[11px] text-selaksana-muted">Diberikan oleh Nuury Rahmadini S., M.Psi., Psikolog · PDF (1.2 MB)</p>
+                  <div class="space-y-1 min-w-0">
+                    <p class="text-xs font-semibold text-selaksana-ink sensitive-data">Worksheet mandiri: pemetaan pikiran otomatis &amp; grounding</p>
+                    <p class="text-[11px] text-selaksana-muted">PDF · 1,2 MB</p>
                   </div>
-                  <button onclick="showToast('Mengunduh Worksheet_Mandiri_Selaksana.pdf...')" class="shrink-0 px-3.5 py-2 rounded-xl bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">
-                    Unduh
-                  </button>
+                  <button onclick="showToast('Berkas contoh. Unduhan aktif setelah sesi pertama.')" class="shrink-0 px-3.5 py-2 rounded-xl bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">Unduh</button>
                 </div>
-
                 <div class="p-4 rounded-2xl bg-selaksana-bg border border-selaksana-border flex items-center justify-between gap-4">
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-2">
-                      <p class="text-xs font-semibold text-selaksana-ink sensitive-data">Hasil Asesmen Pribadi &amp; Profil Regulasi Emosi</p>
-                      <span class="px-2 py-0.5 rounded bg-selaksana-plumLight text-selaksana-plum text-[10px] font-semibold">PDF Berpassword</span>
+                  <div class="space-y-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <p class="text-xs font-semibold text-selaksana-ink sensitive-data">Hasil asesmen pribadi &amp; profil regulasi emosi</p>
+                      <span class="px-2 py-0.5 rounded bg-selaksana-plumLight text-selaksana-plum text-[10px] font-semibold">PDF berpassword</span>
                     </div>
-                    <p class="text-[11px] text-selaksana-muted">Gunakan 6 digit tanggal lahir (DDMMYY) untuk membuka laporan.</p>
+                    <p class="text-[11px] text-selaksana-muted">Kata sandi: 6 digit tanggal lahir (DDMMYY).</p>
                   </div>
-                  <button onclick="showToast('Mengunduh Laporan_Asesmen_Resmi_SIPP.pdf (Terkunci Password)...')" class="shrink-0 px-3.5 py-2 rounded-xl bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">
-                    Akses PDF
-                  </button>
+                  <button onclick="showToast('Berkas contoh. Laporan resmi dikirim setelah asesmen selesai.')" class="shrink-0 px-3.5 py-2 rounded-xl bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">Buka PDF</button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- 3. RIWAYAT SESI -->
-          <div id="portal-riwayat" class="bg-white rounded-3xl p-6 sm:p-8 border border-selaksana-border shadow-card space-y-4">
-            <h3 class="font-serif font-semibold text-xl text-selaksana-ink">Riwayat Sesi Konsultasi</h3>
+          <div id="portal-riwayat" class="bg-white rounded-3xl p-6 sm:p-8 border border-selaksana-border shadow-card space-y-4 scroll-mt-28">
+            <h3 class="font-serif font-semibold text-xl text-selaksana-ink">Riwayat sesi</h3>
             <div class="p-4 rounded-2xl bg-selaksana-bg border border-selaksana-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div class="space-y-1">
-                <span class="text-[11px] font-bold text-selaksana-plum uppercase">SESI #01 · SELESAI</span>
-                <p class="text-sm font-semibold text-selaksana-ink sensitive-data">Asesmen Awal, Eksplorasi Keluhan &amp; Penetapan Target Terapi</p>
-                <p class="text-xs text-selaksana-muted">Bersama Nuury Rahmadini Sawitry, S.Psi., Psikolog · Online Video Call (60 Menit)</p>
+                <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold">Sesi 1 · selesai</span>
+                <p class="text-sm font-semibold text-selaksana-ink sensitive-data">Asesmen awal, eksplorasi keluhan &amp; penetapan target</p>
+                <p class="text-xs text-selaksana-muted">Konseling Individu · Online video call · 60 menit</p>
               </div>
-              <button onclick="showToast('Menampilkan ringkasan catatan refleksi Sesi #01...')" class="self-start sm:self-center shrink-0 px-4 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">
-                Lihat Ringkasan Sesi
+              <button onclick="showToast('Ringkasan sesi tersedia setelah psikolog menyetujui catatan.')" class="self-start sm:self-center shrink-0 px-4 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">
+                Lihat ringkasan
               </button>
             </div>
           </div>
 
-          <!-- 4. PENGATURAN AKUN (Ubah Nama Samaran, WhatsApp, Kata Sandi) -->
-          <div id="portal-pengaturan" class="bg-white rounded-3xl p-6 sm:p-8 border border-selaksana-border shadow-card space-y-5">
+          <div id="portal-pengaturan" class="bg-white rounded-3xl p-6 sm:p-8 border border-selaksana-border shadow-card space-y-5 scroll-mt-28">
             <div>
-              <h3 class="font-serif font-semibold text-xl text-selaksana-ink">Pengaturan Akun &amp; Kendali Privasi</h3>
-              <p class="text-xs text-selaksana-muted mt-1">Ubah nama samaran (alias), nomor pengingat WhatsApp, atau perbarui kata sandi portal.</p>
+              <h3 class="font-serif font-semibold text-xl text-selaksana-ink">Pengaturan &amp; privasi</h3>
+              <p class="text-xs text-selaksana-muted mt-1">Ubah nama samaran dan pengingat sesi. Data tersimpan di perangkat ini.</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-selaksana-ink mb-1.5">Nama Samaran / Alias Klien</label>
-                <input id="input-alias-name" type="text" value="Maya R." class="w-full px-3.5 py-2.5 rounded-xl bg-selaksana-bg border border-selaksana-border text-xs text-selaksana-ink" />
+                <label for="input-alias-name" class="block text-xs font-semibold text-selaksana-ink mb-1.5">Nama samaran</label>
+                <input id="input-alias-name" type="text" value="Maya R." class="w-full px-3.5 py-2.5 rounded-xl bg-selaksana-bg border border-selaksana-border text-xs text-selaksana-ink focus:outline-none focus:border-selaksana-plum" />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-selaksana-ink mb-1.5">Nomor WhatsApp Pengingat Sesi</label>
-                <input id="input-alias-wa" type="text" value="+62 812-••••-4921" class="w-full px-3.5 py-2.5 rounded-xl bg-selaksana-bg border border-selaksana-border text-xs text-selaksana-ink" />
+                <label for="input-alias-wa" class="block text-xs font-semibold text-selaksana-ink mb-1.5">Nomor WhatsApp pengingat</label>
+                <input id="input-alias-wa" type="tel" placeholder="08xxxxxxxxxx" class="w-full px-3.5 py-2.5 rounded-xl bg-selaksana-bg border border-selaksana-border text-xs text-selaksana-ink focus:outline-none focus:border-selaksana-plum" />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-selaksana-ink mb-1.5">Ubah Kata Sandi Portal</label>
-                <input type="password" value="••••••••••••" class="w-full px-3.5 py-2.5 rounded-xl bg-selaksana-bg border border-selaksana-border text-xs text-selaksana-ink" />
+                <label for="input-reminder" class="block text-xs font-semibold text-selaksana-ink mb-1.5">Kirim pengingat</label>
+                <select id="input-reminder" class="w-full px-3.5 py-2.5 rounded-xl bg-selaksana-bg border border-selaksana-border text-xs text-selaksana-ink focus:outline-none focus:border-selaksana-plum">
+                  <option value="h1">H-1 (24 jam sebelum sesi)</option>
+                  <option value="h2">2 jam sebelum sesi</option>
+                  <option value="both">H-1 dan 2 jam sebelum</option>
+                </select>
               </div>
             </div>
             <button onclick="saveAccountSettings()" class="px-5 py-2.5 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition">
-              Simpan Pengaturan Akun
+              Simpan pengaturan
             </button>
           </div>
 
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================================================================
+         PAGE 9: DASBOR STAF (id="staf") — login + ruang kerja
+         =================================================================== -->
+    <div id="page-staf" class="page-view hidden tab-fade">
+
+      <!-- Gerbang login -->
+      <section id="staff-login" class="py-12 lg:py-20">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+          <div class="lg:col-span-6 space-y-5">
+            <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-selaksana-crisis text-white text-xs font-semibold">
+              <i data-lucide="lock-keyhole" class="w-3.5 h-3.5"></i> Khusus staf Selaksana
+            </span>
+            <h1 class="font-serif font-semibold text-3xl sm:text-5xl text-selaksana-ink leading-[1.12]">
+              Ruang kerja untuk memasangkan klien dengan psikolog yang tepat.
+            </h1>
+            <p class="text-sm sm:text-base text-selaksana-muted leading-relaxed max-w-md">
+              Masuk dengan email staf yang terdaftar untuk meninjau permintaan janji temu, menentukan psikolog, dan memantau jadwal tim.
+            </p>
+            <ul class="text-xs text-selaksana-muted space-y-2">
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-selaksana-plum"></i> Permintaan klien masuk otomatis dari formulir janji temu</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-selaksana-plum"></i> Saran psikolog berdasarkan topik dan beban kerja</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-selaksana-plum"></i> Mode samar untuk menjaga data klien di layar</li>
+            </ul>
+          </div>
+
+          <div class="lg:col-span-6">
+            <form id="staff-login-form" onsubmit="submitStaffLogin(event)" novalidate class="bg-white rounded-3xl p-7 sm:p-9 border border-selaksana-border shadow-schedule space-y-5">
+              <div>
+                <h2 class="font-serif font-semibold text-2xl text-selaksana-ink">Masuk sebagai staf</h2>
+                <p class="text-xs text-selaksana-muted mt-1">Gunakan alamat email dan kata sandi yang terdaftar.</p>
+              </div>
+              <div>
+                <label for="staff-email" class="block text-xs font-semibold text-selaksana-ink mb-1.5">Alamat email</label>
+                <input id="staff-email" type="email" autocomplete="username" required placeholder="nama@email.com" class="w-full px-4 py-3 rounded-xl bg-selaksana-bg border border-selaksana-border text-sm text-selaksana-ink focus:outline-none focus:border-selaksana-plum" />
+              </div>
+              <div>
+                <label for="staff-password" class="block text-xs font-semibold text-selaksana-ink mb-1.5">Kata sandi</label>
+                <div class="relative">
+                  <input id="staff-password" type="password" autocomplete="current-password" required placeholder="Kata sandi" class="w-full pl-4 pr-12 py-3 rounded-xl bg-selaksana-bg border border-selaksana-border text-sm text-selaksana-ink focus:outline-none focus:border-selaksana-plum" />
+                  <button type="button" onclick="toggleStaffPassword()" id="staff-pass-toggle" aria-label="Tampilkan kata sandi" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-selaksana-muted hover:text-selaksana-plum">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+              <p id="staff-login-error" role="alert" class="hidden text-xs font-medium text-rose-700 bg-rose-50 border border-rose-100 rounded-xl px-3.5 py-2.5"></p>
+              <button id="staff-login-btn" type="submit" class="w-full py-3.5 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-sm font-semibold transition inline-flex items-center justify-center gap-2">
+                <span>Masuk ke dasbor</span>
+              </button>
+              <p class="text-[11px] text-selaksana-muted text-center leading-relaxed">
+                Lupa kata sandi? <button type="button" onclick="showToast('Hubungi koordinator biro untuk mengatur ulang kata sandi.')" class="underline font-semibold text-selaksana-plum">Hubungi koordinator</button>
+              </p>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dasbor (tampil setelah login) -->
+      <section id="staff-dash" class="hidden py-8 lg:py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-[250px_minmax(0,1fr)] gap-6">
+
+          <aside class="lg:sticky lg:top-28 lg:self-start bg-selaksana-crisis text-[#F7F3EB] rounded-3xl p-4 lg:p-5 space-y-4">
+            <div class="flex items-center gap-3 px-1">
+              <div id="staff-avatar" class="w-11 h-11 rounded-full bg-selaksana-plum text-white font-serif font-semibold flex items-center justify-center shrink-0">AS</div>
+              <div class="min-w-0">
+                <p id="staff-name" class="text-sm font-semibold truncate">Admin Selaksana</p>
+                <p id="staff-role" class="text-[11px] text-white/60 truncate">Koordinator biro</p>
+              </div>
+            </div>
+            <nav class="flex lg:flex-col gap-1.5 overflow-x-auto scroll-x-hide" aria-label="Menu dasbor">
+              <button data-stab="ringkasan" onclick="staffTab('ringkasan')" class="staff-nav-btn active shrink-0 flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[13px] transition"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Ringkasan</span></button>
+              <button data-stab="permintaan" onclick="staffTab('permintaan')" class="staff-nav-btn shrink-0 flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[13px] transition"><i data-lucide="inbox" class="w-4 h-4"></i><span>Permintaan</span><span id="staff-pending-badge" class="ml-auto hidden min-w-[20px] text-center px-1.5 py-0.5 rounded-full bg-selaksana-ochre text-white text-[10px] font-bold">0</span></button>
+              <button data-stab="jadwal" onclick="staffTab('jadwal')" class="staff-nav-btn shrink-0 flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[13px] transition"><i data-lucide="calendar-days" class="w-4 h-4"></i><span>Jadwal sesi</span></button>
+              <button data-stab="tim" onclick="staffTab('tim')" class="staff-nav-btn shrink-0 flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[13px] transition"><i data-lucide="users-round" class="w-4 h-4"></i><span>Tim psikolog</span></button>
+            </nav>
+            <div class="hidden lg:block border-t border-white/10 pt-4 space-y-1.5">
+              <button onclick="toggleStaffPrivacy()" id="staff-privacy-btn" aria-pressed="false" class="staff-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[13px] transition"><i data-lucide="eye-off" class="w-4 h-4"></i><span id="staff-privacy-label">Samarkan data klien</span></button>
+              <button onclick="resetDemoData()" class="staff-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[13px] transition"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Setel ulang data contoh</span></button>
+              <button onclick="staffLogout()" class="staff-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-[13px] transition"><i data-lucide="log-out" class="w-4 h-4"></i><span>Keluar</span></button>
+            </div>
+            <div class="lg:hidden flex gap-2">
+              <button onclick="toggleStaffPrivacy()" class="staff-nav-btn flex-1 px-3 py-2 rounded-xl text-xs">Samarkan data</button>
+              <button onclick="staffLogout()" class="staff-nav-btn flex-1 px-3 py-2 rounded-xl text-xs">Keluar</button>
+            </div>
+          </aside>
+
+          <div id="staff-main" class="min-w-0">
+            <div id="staff-pane-ringkasan" class="staff-pane tab-fade"></div>
+            <div id="staff-pane-permintaan" class="staff-pane hidden tab-fade"></div>
+            <div id="staff-pane-jadwal" class="staff-pane hidden tab-fade"></div>
+            <div id="staff-pane-tim" class="staff-pane hidden tab-fade"></div>
+          </div>
         </div>
       </section>
     </div>
@@ -1526,7 +1575,7 @@
             <li><button onclick="openServiceDetail('psikoedukasi')" class="hover:text-selaksana-plum transition">Psikoedukasi &amp; Korporasi (B2B)</button></li>
             <li><button onclick="openServiceDetail('konseling-individu')" class="hover:text-selaksana-plum transition">Konseling Individu</button></li>
             <li><button onclick="openServiceDetail('konseling-keluarga')" class="hover:text-selaksana-plum transition">Konseling Pasangan &amp; Keluarga</button></li>
-            <li><button onclick="openServiceDetail('konseling-keluarga')" class="hover:text-selaksana-plum transition">Konseling Anak &amp; Remaja</button></li>
+            <li><button onclick="openServiceDetail('konseling-anak')" class="hover:text-selaksana-plum transition">Konseling Anak &amp; Remaja</button></li>
             <li><button onclick="switchPage('biaya')" class="hover:text-selaksana-plum transition">Biaya &amp; Jadwal</button></li>
           </ul>
         </div>
@@ -1558,146 +1607,179 @@
             <p><a href="https://instagram.com/di.selaksana" target="_blank" rel="noopener noreferrer" class="hover:text-selaksana-plum transition">Instagram @di.selaksana</a></p>
             <p><a href="https://tiktok.com/@di.selaksana" target="_blank" rel="noopener noreferrer" class="hover:text-selaksana-plum transition">TikTok @di.selaksana</a></p>
             <p class="pt-1 font-semibold text-selaksana-ochre">Darurat: SEJIWA 119 ext. 8</p>
+            <p><button onclick="switchPage('staf')" class="inline-flex items-center gap-1.5 hover:text-selaksana-plum transition"><i data-lucide="lock-keyhole" class="w-3 h-3"></i>Masuk staf</button></p>
           </div>
         </div>
 
       </div>
 
       <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-selaksana-muted">
-        <p>© 2025 Selaksana — Biro Konsultasi Psikologi. Seluruh hak cipta dilindungi.</p>
+        <p>© <span data-year>2025</span> Selaksana — Biro Konsultasi Psikologi. Seluruh hak cipta dilindungi.</p>
         <p>Kerahasiaan data klien dilindungi sesuai Kode Etik Psikologi Indonesia.</p>
       </div>
     </div>
   </footer>
 
   <!-- =====================================================================
-       MODAL 1: BUAT JANJI TEMU PINTAR (DENGAN PREFILL SLOT & KALKULATOR ESTIMASI BIAYA)
+       MODAL 1: AJUKAN JANJI TEMU (psikolog ditentukan biro)
        ===================================================================== -->
-  <div id="booking-modal" class="fixed inset-0 z-50 hidden bg-selaksana-ink/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-selaksana-bg rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-selaksana-border shadow-floating relative max-h-[92vh] overflow-y-auto">
-      <button onclick="closeBookingModal()" class="absolute top-5 right-5 p-2 rounded-full bg-white border border-selaksana-border text-selaksana-muted hover:text-selaksana-ink cursor-pointer">
+  <div id="booking-modal" role="dialog" aria-modal="true" aria-labelledby="booking-title" onclick="if(event.target===this)closeBookingModal()" class="fixed inset-0 z-50 hidden bg-selaksana-ink/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="modal-card bg-selaksana-bg rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-selaksana-border shadow-floating relative max-h-[92vh] overflow-y-auto">
+      <button onclick="closeBookingModal()" aria-label="Tutup" class="absolute top-5 right-5 p-2 rounded-full bg-white border border-selaksana-border text-selaksana-muted hover:text-selaksana-ink cursor-pointer">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
 
-      <span class="inline-block px-3 py-1 rounded-full bg-selaksana-plumLight text-selaksana-plum text-[11px] font-semibold mb-2">Formulir Terenkripsi</span>
-      <h2 class="font-serif font-semibold text-2xl text-selaksana-ink">Buat Janji Temu Sesi</h2>
-      <p class="text-xs text-selaksana-muted mt-1 mb-5">
-        Pendampingan privat dan aman tanpa tuntutan bercerita sempurna.
-      </p>
+      <!-- Tampilan formulir -->
+      <div id="booking-form-view">
+        <span class="inline-block px-3 py-1 rounded-full bg-selaksana-plumLight text-selaksana-plum text-[11px] font-semibold mb-2">Formulir privat</span>
+        <h2 id="booking-title" class="font-serif font-semibold text-2xl text-selaksana-ink">Ajukan janji temu</h2>
+        <p class="text-xs text-selaksana-muted mt-1 mb-4">Tidak perlu bercerita detail. Cukup isi kebutuhan dan waktu yang cocok.</p>
 
-      <form onsubmit="submitBookingForm(event)" class="space-y-4 text-xs">
-        <!-- 1. Pilih Layanan + Kalkulator Estimasi Biaya -->
-        <div>
-          <label class="block font-semibold text-selaksana-ink mb-1">1. Pilih Jenis Layanan</label>
-          <select id="book-service" onchange="updateEstimatedFee()" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum">
-            <option value="Konseling Individu">Konseling Individu Dewasa (60 menit - Rp250.000)</option>
-            <option value="Konseling Pasangan & Keluarga">Konseling Pasangan / Keluarga (90 menit - Rp300.000)</option>
-            <option value="Konseling Anak & Remaja">Konseling Anak &amp; Remaja (60 menit - Rp250.000)</option>
-            <option value="Asesmen Pribadi">Asesmen Pribadi &amp; Psikotes (Mulai Rp450.000)</option>
-            <option value="Psikoedukasi">Psikoedukasi &amp; Korporasi (B2B)</option>
-          </select>
+        <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-white border border-selaksana-border mb-5">
+          <i data-lucide="users-round" class="w-4 h-4 text-selaksana-plum shrink-0 mt-0.5"></i>
+          <p class="text-[11px] text-selaksana-muted leading-relaxed">
+            <strong class="text-selaksana-ink">Psikolog ditentukan oleh biro</strong> berdasarkan topik, keahlian, dan ketersediaan jadwal. Namanya kami kirim lewat WhatsApp bersama konfirmasi jadwal.
+          </p>
         </div>
 
-        <!-- 2. Format Sesi (Online vs Tatap Muka Ruang Asoka Bandung) -->
-        <div>
-          <label class="block font-semibold text-selaksana-ink mb-1">2. Format Pelaksanaan Sesi</label>
-          <select id="book-mode" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum">
-            <option value="Online (Google Meet)">Online — Google Meet / Video Call (60 Menit)</option>
-            <option value="Online (Voice Call Tanpa Kamera)">Online — Voice Call Tanpa Kamera</option>
-            <option value="Online (Chat Terjadwal)">Online — Chat Terjadwal</option>
-            <option value="Tatap Muka di Ruang Asoka Bandung">Tatap Muka — Ruang Asoka, Bandung</option>
-          </select>
-        </div>
-
-        <!-- 3. Pilih Psikolog + Slot Prefilled Badge -->
-        <div class="space-y-1.5">
-          <label class="block font-semibold text-selaksana-ink">3. Pilih Psikolog Praktisi (S.Psi., Psikolog)</label>
-          <select id="book-psychologist" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum">
-            <option value="Nuury Rahmadini Sawitry, S.Psi., Psikolog">Nuury Rahmadini Sawitry, S.Psi., Psikolog (Kecemasan / Dewasa)</option>
-            <option value="Adhitya Pramudya Wardani, S.Psi., Psikolog">Adhitya Pramudya Wardani, S.Psi., Psikolog (Stres Kerja / Relasi)</option>
-            <option value="Salma Nur Fadhilah, S.Psi., Psikolog">Salma Nur Fadhilah, S.Psi., Psikolog (Keluarga / Pasangan)</option>
-            <option value="Rezky Ananda Putri, S.Psi., Psikolog">Rezky Ananda Putri, S.Psi., Psikolog (Anak &amp; Remaja / Asesmen)</option>
-          </select>
-          <div id="slot-prefilled-badge" class="hidden text-[11px] bg-emerald-50 text-emerald-800 px-3.5 py-2 rounded-xl border border-emerald-200 flex items-center justify-between">
-            <span id="slot-prefilled-text">Slot terpilih: -</span>
-            <button type="button" onclick="clearPrefilledSlot()" class="text-emerald-900 font-semibold underline text-[10px] cursor-pointer">Ubah</button>
-          </div>
-        </div>
-
-        <!-- 4. Identitas & Nomor WA -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <form id="booking-form" onsubmit="submitBookingForm(event)" novalidate class="space-y-4 text-xs">
           <div>
-            <label class="block font-semibold text-selaksana-ink mb-1">4. Nama Panggilan / Samaran</label>
-            <input id="book-name" type="text" required placeholder="Contoh: Maya R. / Inisial" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum" />
+            <label for="book-service" class="block font-semibold text-selaksana-ink mb-1">Jenis layanan</label>
+            <select id="book-service" onchange="updateEstimatedFee()" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum">
+              <option value="Konseling Individu">Konseling Individu Dewasa (60 menit)</option>
+              <option value="Konseling Pasangan & Keluarga">Konseling Pasangan / Keluarga (90 menit)</option>
+              <option value="Konseling Anak & Remaja">Konseling Anak &amp; Remaja (60 menit)</option>
+              <option value="Asesmen Pribadi">Asesmen Pribadi &amp; Psikotes</option>
+              <option value="Psikoedukasi">Psikoedukasi &amp; Korporasi (B2B)</option>
+            </select>
           </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="book-mode" class="block font-semibold text-selaksana-ink mb-1">Format sesi</label>
+              <select id="book-mode" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum">
+                <option value="Online (Video Call)">Online: video call</option>
+                <option value="Online (Voice Call Tanpa Kamera)">Online: voice call tanpa kamera</option>
+                <option value="Online (Chat Terjadwal)">Online: chat terjadwal</option>
+                <option value="Tatap Muka di Ruang Asoka Bandung">Tatap muka: Ruang Asoka, Bandung</option>
+              </select>
+            </div>
+            <div>
+              <label for="book-topic" class="block font-semibold text-selaksana-ink mb-1">Topik utama</label>
+              <select id="book-topic" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum">
+                <option value="kecemasan">Kecemasan &amp; depresi</option>
+                <option value="stres">Stres kerja &amp; kelelahan</option>
+                <option value="relasi">Relasi pasangan &amp; keluarga</option>
+                <option value="remaja">Tumbuh kembang anak &amp; remaja</option>
+                <option value="lainnya">Belum yakin / lainnya</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="book-name" class="block font-semibold text-selaksana-ink mb-1">Nama panggilan atau samaran</label>
+              <input id="book-name" type="text" required maxlength="40" autocomplete="nickname" placeholder="Contoh: Maya R." class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum" />
+            </div>
+            <div>
+              <label for="book-wa" class="block font-semibold text-selaksana-ink mb-1">Nomor WhatsApp aktif</label>
+              <input id="book-wa" type="tel" required autocomplete="tel" placeholder="08xxxxxxxxxx" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="book-date" class="block font-semibold text-selaksana-ink mb-1">Tanggal yang diinginkan</label>
+              <input id="book-date" type="date" required class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum" />
+            </div>
+            <div>
+              <label for="book-time" class="block font-semibold text-selaksana-ink mb-1">Rentang jam</label>
+              <select id="book-time" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum">
+                <option value="Pagi (09.00–12.00)">Pagi (09.00–12.00)</option>
+                <option value="Siang (12.00–15.00)">Siang (12.00–15.00)</option>
+                <option value="Sore (15.00–18.00)">Sore (15.00–18.00)</option>
+                <option value="Malam (18.00–20.00)">Malam (18.00–20.00)</option>
+              </select>
+            </div>
+          </div>
+          <p class="text-[11px] text-selaksana-muted -mt-2">Jadwal pasti dikonfirmasi biro. Operasional Senin–Sabtu 09.00–20.00 WIB.</p>
+
           <div>
-            <label class="block font-semibold text-selaksana-ink mb-1">Nomor WhatsApp Aktif</label>
-            <input id="book-wa" type="tel" required placeholder="08xxxxxxxxxx" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum" />
+            <label for="book-notes" class="block font-semibold text-selaksana-ink mb-1">Catatan untuk biro <span class="font-normal text-selaksana-muted">(opsional)</span></label>
+            <textarea id="book-notes" rows="2" maxlength="240" placeholder="Misalnya: lebih nyaman dengan psikolog perempuan, atau butuh jadwal setelah jam kerja." class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum"></textarea>
+            <p class="text-[11px] text-selaksana-muted mt-1">Jangan menulis cerita sensitif di sini. Detailnya dibahas langsung bersama psikolog.</p>
           </div>
-        </div>
 
-        <div>
-          <label class="block font-semibold text-selaksana-ink mb-1">Preferensi Hari &amp; Jam Sesi</label>
-          <input id="book-schedule" type="text" required value="Rabu, 18 Juni · 10.30 WIB" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum" />
-        </div>
+          <div class="p-3.5 bg-white rounded-2xl border border-selaksana-border flex items-center justify-between gap-3">
+            <span class="text-selaksana-muted font-medium">Estimasi biaya</span>
+            <span id="estimated-fee" class="font-bold text-selaksana-plum font-serif text-sm text-right">Rp250.000 / 60 menit</span>
+          </div>
 
-        <!-- Kalkulator Estimasi Biaya Sesi -->
-        <div class="p-3.5 bg-white rounded-2xl border border-selaksana-border flex items-center justify-between">
-          <span class="text-selaksana-muted font-medium">Estimasi Biaya Sesi:</span>
-          <span id="estimated-fee" class="font-bold text-selaksana-plum font-serif text-sm">Rp250.000 / 60 menit</span>
-        </div>
+          <div class="p-3.5 rounded-2xl bg-selaksana-plumLight/70 border border-selaksana-plum/20">
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input id="book-consent" type="checkbox" required class="mt-0.5 accent-selaksana-plum" />
+              <span class="text-[11px] text-selaksana-ink/90 leading-relaxed">
+                Saya memahami komitmen kerahasiaan data dan akan mengisi
+                <a href="https://forms.gle/rvYimyTyfMbo6yaDA" target="_blank" rel="noopener noreferrer" class="underline text-selaksana-plum font-bold hover:text-selaksana-plumDark">formulir Informed Consent resmi</a>
+                sebelum sesi.
+              </span>
+            </label>
+          </div>
 
-        <!-- Link Resmi Informed Consent Google Form -->
-        <div class="p-3.5 rounded-2xl bg-selaksana-plumLight/70 border border-selaksana-plum/20 space-y-2">
-          <label class="flex items-start gap-2.5 cursor-pointer">
-            <input type="checkbox" required checked class="mt-0.5 accent-selaksana-plum" />
-            <span class="text-[11px] text-selaksana-ink/90 leading-relaxed">
-              Saya memahami komitmen kerahasiaan data dan bersedia mengisi
-              <a href="https://forms.gle/rvYimyTyfMbo6yaDA" target="_blank" rel="noopener noreferrer" class="underline text-selaksana-plum font-bold hover:text-selaksana-plumDark">
-                Formulir Informed Consent Resmi (Google Form) ↗
-              </a>
-            </span>
-          </label>
-        </div>
+          <p id="booking-error" role="alert" class="hidden text-xs font-medium text-rose-700 bg-rose-50 border border-rose-100 rounded-xl px-3.5 py-2.5"></p>
 
-        <div class="pt-1 flex flex-col sm:flex-row gap-2.5">
           <button type="submit" class="w-full py-3.5 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white font-semibold transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-            <i data-lucide="message-circle" class="w-4 h-4"></i>
-            <span>Kirim Permintaan Janji Temu ke WhatsApp</span>
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span>Kirim permintaan</span>
           </button>
+        </form>
+      </div>
+
+      <!-- Tampilan sukses -->
+      <div id="booking-success-view" class="hidden space-y-5 pt-2">
+        <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center"><i data-lucide="check" class="w-6 h-6"></i></div>
+        <div>
+          <h2 class="font-serif font-semibold text-2xl text-selaksana-ink">Permintaan terkirim</h2>
+          <p class="text-xs text-selaksana-muted mt-1.5 leading-relaxed">Nomor permintaan <strong id="success-id" class="text-selaksana-ink">-</strong>. Biro sedang mencocokkan psikolog yang sesuai untukmu.</p>
         </div>
-      </form>
+        <ol class="space-y-2.5 text-xs text-selaksana-ink/90">
+          <li class="flex gap-2.5"><span class="font-serif font-bold text-selaksana-ochre">1</span> Kirim ringkasan permintaan ke resepsionis lewat WhatsApp (tombol di bawah).</li>
+          <li class="flex gap-2.5"><span class="font-serif font-bold text-selaksana-ochre">2</span> Biro menentukan psikolog dan mengonfirmasi jadwal.</li>
+          <li class="flex gap-2.5"><span class="font-serif font-bold text-selaksana-ochre">3</span> Nama psikolog dan jadwal pasti muncul di Portal Klien dan WhatsApp.</li>
+        </ol>
+        <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
+          <a id="success-wa-link" href="#" target="_blank" rel="noopener noreferrer" class="flex-1 inline-flex items-center justify-center gap-2 py-3 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition">
+            <i data-lucide="message-circle" class="w-4 h-4"></i><span>Kirim lewat WhatsApp</span>
+          </a>
+          <button onclick="closeBookingModal(); switchPage('portal')" class="flex-1 py-3 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum transition">Lihat status di portal</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- =====================================================================
-       MODAL 2: INFORMED CONSENT & LEGALITAS SELAKSANA (TERHUBUNG KE GFORM RESMI)
+       MODAL 2: KONTEN (Informed Consent, Kebijakan, Syarat, Artikel)
        ===================================================================== -->
-  <div id="consent-modal" class="fixed inset-0 z-50 hidden bg-selaksana-ink/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-selaksana-border shadow-floating relative max-h-[88vh] overflow-y-auto space-y-4">
-      <button onclick="closeInformedConsentModal()" class="absolute top-5 right-5 p-2 rounded-full bg-selaksana-bg text-selaksana-muted hover:text-selaksana-ink cursor-pointer">
+  <div id="content-modal" role="dialog" aria-modal="true" aria-labelledby="content-modal-title" onclick="if(event.target===this)closeContentModal()" class="fixed inset-0 z-50 hidden bg-selaksana-ink/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="modal-card bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 border border-selaksana-border shadow-floating relative max-h-[88vh] overflow-y-auto space-y-4">
+      <button onclick="closeContentModal()" aria-label="Tutup" class="absolute top-5 right-5 p-2 rounded-full bg-selaksana-bg text-selaksana-muted hover:text-selaksana-ink cursor-pointer">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
-      <span class="inline-block px-3 py-1 rounded-full bg-selaksana-plumLight text-selaksana-plum text-[11px] font-semibold">Dokumen Etika &amp; Persetujuan Klien</span>
-      <h3 class="font-serif font-semibold text-2xl text-selaksana-ink" id="legal-modal-title">Informed Consent Layanan Psikologi Selaksana</h3>
-      <div id="legal-modal-body" class="space-y-3 text-xs text-selaksana-muted leading-relaxed">
-        <p><strong>1. Tujuan &amp; Manfaat Layanan:</strong> Asesmen pribadi, psikoedukasi, dan konseling bertujuan membantu klien mengenali kondisi diri, mengelola emosi, serta menyusun langkah pemulihan secara kolaboratif bersama Psikolog berlisensi (S.Psi., Psikolog).</p>
-        <p><strong>2. Durasi &amp; Toleransi Kehadiran:</strong> Sesi konseling berlangsung ±60 menit (atau 90 menit untuk sesi pasangan/mendalam) secara daring maupun tatap muka di Ruang Asoka Bandung. Demi kenyamanan bersama, batas toleransi keterlambatan adalah <strong>maksimal 10 menit</strong>.</p>
-        <p><strong>3. Jaminan Kerahasiaan Data (Kode Etik HIMPSI):</strong> Seluruh cerita, identitas, dan hasil asesmen pribadi bersifat sangat rahasia serta tidak akan pernah dibagikan kepada pihak ketiga tanpa izin tertulis dari klien.</p>
-        <p><strong>4. Hak Kenyamanan Emosional Klien:</strong> Klien berhak menggunakan nama samaran, meminta jeda waktu apabila muncul rasa kurang nyaman saat membahas pengalaman sensitif, atau menjadwalkan ulang sesi maksimal H-1 (24 jam sebelumnya).</p>
-      </div>
-      <div class="p-4 rounded-2xl bg-selaksana-bg border border-selaksana-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <span id="content-modal-badge" class="inline-block px-3 py-1 rounded-full bg-selaksana-plumLight text-selaksana-plum text-[11px] font-semibold">Dokumen</span>
+      <h3 class="font-serif font-semibold text-2xl text-selaksana-ink pr-10" id="content-modal-title">Judul</h3>
+      <div id="content-modal-body" class="space-y-3 text-xs sm:text-[13px] text-selaksana-muted leading-relaxed"></div>
+      <div id="content-modal-cta" class="hidden p-4 rounded-2xl bg-selaksana-bg border border-selaksana-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <p class="text-xs font-bold text-selaksana-ink">Formulir Persetujuan Digital (Google Form)</p>
+          <p class="text-xs font-bold text-selaksana-ink">Formulir persetujuan digital (Google Form)</p>
           <p class="text-[11px] text-selaksana-muted">Isi lembar persetujuan tindakan resmi sebelum sesi dimulai.</p>
         </div>
         <a href="https://forms.gle/rvYimyTyfMbo6yaDA" target="_blank" rel="noopener noreferrer" class="shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition">
-          <span>Buka GForm Resmi</span>
+          <span>Buka formulir resmi</span>
           <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
         </a>
       </div>
       <div class="pt-2 border-t border-selaksana-border flex justify-end">
-        <button onclick="closeInformedConsentModal()" class="px-5 py-2.5 rounded-full bg-selaksana-subtle hover:bg-selaksana-border text-selaksana-ink text-xs font-semibold cursor-pointer">Tutup</button>
+        <button onclick="closeContentModal()" class="px-5 py-2.5 rounded-full bg-selaksana-subtle hover:bg-selaksana-border text-selaksana-ink text-xs font-semibold cursor-pointer">Tutup</button>
       </div>
     </div>
   </div>
@@ -1705,7 +1787,7 @@
   <!-- =====================================================================
        MODAL 3: BANTUAN KRISIS DARURAT (DARI CODE.HTML)
        ===================================================================== -->
-  <div id="crisis-modal" class="fixed inset-0 z-50 hidden bg-selaksana-ink/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div id="crisis-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeCrisisModal()" class="fixed inset-0 z-50 hidden bg-selaksana-ink/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-rose-200 shadow-floating relative space-y-4">
       <button onclick="closeCrisisModal()" class="absolute top-5 right-5 p-2 rounded-full bg-selaksana-bg text-selaksana-muted hover:text-selaksana-ink cursor-pointer">
         <i data-lucide="x" class="w-4 h-4"></i>
@@ -1748,7 +1830,7 @@
   <!-- =====================================================================
        MODAL 4: DETAIL LAYANAN SPESIALIS (DARI CODE.HTML)
        ===================================================================== -->
-  <div id="service-detail-modal" class="fixed inset-0 z-50 hidden bg-selaksana-ink/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div id="service-detail-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeServiceDetailModal()" class="fixed inset-0 z-50 hidden bg-selaksana-ink/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-selaksana-border shadow-floating relative space-y-4">
       <button onclick="closeServiceDetailModal()" class="absolute top-5 right-5 p-2 rounded-full bg-selaksana-bg text-selaksana-muted hover:text-selaksana-ink cursor-pointer">
         <i data-lucide="x" class="w-4 h-4"></i>
@@ -1778,7 +1860,7 @@
   </div>
 
   <!-- Toast Notification -->
-  <div id="toast-box" class="fixed bottom-6 right-6 z-50 hidden bg-selaksana-ink text-white text-xs font-medium px-4 py-3 rounded-2xl shadow-floating flex items-center gap-2.5">
+  <div id="toast-box" role="status" aria-live="polite" class="fixed bottom-6 right-6 z-50 hidden bg-selaksana-ink text-white text-xs font-medium px-4 py-3 rounded-2xl shadow-floating flex items-center gap-2.5">
     <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0"></i>
     <span id="toast-text">Berhasil disimpan.</span>
   </div>
@@ -1787,77 +1869,103 @@
        APPLICATION DATA & INTERACTIVE CONTROLLERS
        ===================================================================== -->
   <script>
-    // Data 4 Psikolog Berlisensi dengan Gelar Lengkap S.Psi., Psikolog
-    const psychologistsData = [
-      {
-        id: 'card-nr',
-        topicKey: 'kecemasan',
-        initials: 'NR',
-        name: 'Nuury Rahmadini Sawitry, S.Psi., Psikolog',
-        role: 'Sarjana Psikologi Profesi · Koordinator Biro',
-        sipp: 'SIPP: 2023-01187',
-        education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)',
-        tags: ['Kecemasan & depresi', 'Regulasi emosi', 'Dewasa muda'],
-        approach: 'Cognitive Behavioral Therapy (CBT) & Acceptance Commitment Therapy (ACT)',
-        modes: 'Online & Tatap Muka',
-        nextSlot: 'Rabu, 18 Juni · 10.30 WIB'
+    /* =====================================================================
+       UTIL: penyimpanan aman (localStorage dengan cadangan memori), escape, tanggal
+       ===================================================================== */
+    const _mem = {};
+    const Store = {
+      get(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw !== null) return JSON.parse(raw);
+        } catch (e) { /* abaikan */ }
+        return (key in _mem) ? _mem[key] : fallback;
       },
-      {
-        id: 'card-ap',
-        topicKey: 'stres',
-        initials: 'AP',
-        name: 'Adhitya Pramudya Wardani, S.Psi., Psikolog',
-        role: 'Sarjana Psikologi Profesi',
-        sipp: 'SIPP: 2022-00841',
-        education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)',
-        tags: ['Stres kerja & burnout', 'Keluarga & pasangan', 'Konseling individu'],
-        approach: 'Systemic Therapy & Solution-Focused Brief Therapy',
-        modes: 'Online & Tatap Muka',
-        nextSlot: 'Rabu, 18 Juni · 15.30 WIB'
+      set(key, val) {
+        _mem[key] = val;
+        try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* abaikan */ }
       },
-      {
-        id: 'card-sn',
-        topicKey: 'relasi',
-        initials: 'SN',
-        name: 'Salma Nur Fadhilah, S.Psi., Psikolog',
-        role: 'Sarjana Psikologi Profesi',
-        sipp: 'SIPP: 2024-01302',
-        education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)',
-        tags: ['Relasi pasangan', 'Pranikah', 'Keluarga & pengasuhan'],
-        approach: 'Emotionally Focused Therapy (EFT) & Narrative Therapy',
-        modes: 'Online & Tatap Muka',
-        nextSlot: 'Kamis, 19 Juni · 13.00 WIB'
-      },
-      {
-        id: 'card-ra',
-        topicKey: 'remaja',
-        initials: 'RA',
-        name: 'Rezky Ananda Putri, S.Psi., Psikolog',
-        role: 'Sarjana Psikologi Profesi',
-        sipp: 'SIPP: 2023-00996',
-        education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)',
-        tags: ['Anak & remaja', 'Asesmen minat bakat', 'Karier & asesmen kerja'],
-        approach: 'Developmental Assessment & Mindfulness-Based Cognitive Therapy',
-        modes: 'Online & Tatap Muka',
-        nextSlot: 'Jumat, 20 Juni · 16.00 WIB'
+      remove(key) {
+        delete _mem[key];
+        try { localStorage.removeItem(key); } catch (e) { /* abaikan */ }
       }
-    ];
+    };
+    const Session = {
+      get(key) { try { return sessionStorage.getItem(key); } catch (e) { return _mem['s:' + key] || null; } },
+      set(key, v) { _mem['s:' + key] = v; try { sessionStorage.setItem(key, v); } catch (e) { /* abaikan */ } },
+      remove(key) { delete _mem['s:' + key]; try { sessionStorage.removeItem(key); } catch (e) { /* abaikan */ } }
+    };
 
-    // Render 4 Psychologist Cards on Beranda (Supports Auto-Highlight Effect)
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function toISO(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+    function addDays(n) { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + n); return toISO(d); }
+    function todayISO() { return addDays(0); }
+    function parseISO(iso) { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d, 12); }
+    function fmtDate(iso, long) {
+      if (!iso) return '-';
+      return new Intl.DateTimeFormat('id-ID', long
+        ? { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }
+        : { weekday: 'short', day: 'numeric', month: 'short' }).format(parseISO(iso));
+    }
+    function fmtTime(t) { return t ? t.replace(':', '.') + ' WIB' : '-'; }
+    function timeAgo(iso) {
+      const mins = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+      if (mins < 60) return mins + ' menit lalu';
+      const h = Math.round(mins / 60);
+      if (h < 24) return h + ' jam lalu';
+      return Math.round(h / 24) + ' hari lalu';
+    }
+    function timeToMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+    function nextWorkingDay(offset) {
+      let n = offset;
+      while (parseISO(addDays(n)).getDay() === 0) n++;
+      return addDays(n);
+    }
+
+    /* =====================================================================
+       DATA: tim psikolog, layanan, topik
+       ===================================================================== */
+    const psychologistsData = [
+      { id: 'nr', domId: 'card-nr', topicKey: 'kecemasan', initials: 'NR', name: 'Nuury Rahmadini Sawitry, S.Psi., Psikolog', short: 'Nuury R.', role: 'Sarjana Psikologi Profesi · Koordinator Biro', sipp: 'SIPP: 2023-01187', education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)', tags: ['Kecemasan & depresi', 'Regulasi emosi', 'Dewasa muda'], approach: 'Cognitive Behavioral Therapy (CBT) & Acceptance Commitment Therapy (ACT)', modes: 'Online & Tatap Muka' },
+      { id: 'ap', domId: 'card-ap', topicKey: 'stres', initials: 'AP', name: 'Adhitya Pramudya Wardani, S.Psi., Psikolog', short: 'Adhitya P.', role: 'Sarjana Psikologi Profesi', sipp: 'SIPP: 2022-00841', education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)', tags: ['Stres kerja & burnout', 'Keluarga & pasangan', 'Konseling individu'], approach: 'Systemic Therapy & Solution-Focused Brief Therapy', modes: 'Online & Tatap Muka' },
+      { id: 'sn', domId: 'card-sn', topicKey: 'relasi', initials: 'SN', name: 'Salma Nur Fadhilah, S.Psi., Psikolog', short: 'Salma N.', role: 'Sarjana Psikologi Profesi', sipp: 'SIPP: 2024-01302', education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)', tags: ['Relasi pasangan', 'Pranikah', 'Keluarga & pengasuhan'], approach: 'Emotionally Focused Therapy (EFT) & Narrative Therapy', modes: 'Online & Tatap Muka' },
+      { id: 'ra', domId: 'card-ra', topicKey: 'remaja', initials: 'RA', name: 'Rezky Ananda Putri, S.Psi., Psikolog', short: 'Rezky A.', role: 'Sarjana Psikologi Profesi', sipp: 'SIPP: 2023-00996', education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)', tags: ['Anak & remaja', 'Asesmen minat bakat', 'Karier & asesmen kerja'], approach: 'Developmental Assessment & Mindfulness-Based Cognitive Therapy', modes: 'Online & Tatap Muka' }
+    ];
+    const WEEKLY_CAPACITY = 10;
+    const TOPICS = { kecemasan: 'Kecemasan & depresi', stres: 'Stres kerja & kelelahan', relasi: 'Relasi pasangan & keluarga', remaja: 'Tumbuh kembang anak & remaja', lainnya: 'Belum yakin / lainnya' };
+    const TOPIC_TO_PSYCH = { kecemasan: 'nr', stres: 'ap', relasi: 'sn', remaja: 'ra' };
+    const SERVICES = {
+      'Konseling Individu': { fee: 'Rp250.000 / 60 menit', min: 60 },
+      'Konseling Pasangan & Keluarga': { fee: 'Rp300.000 / 90 menit', min: 90 },
+      'Konseling Anak & Remaja': { fee: 'Rp250.000 / 60 menit', min: 60 },
+      'Asesmen Pribadi': { fee: 'Rp450.000 – Rp750.000 (termasuk laporan PDF)', min: 90 },
+      'Psikoedukasi': { fee: 'Sesuai program / instansi', min: 90 }
+    };
+    const BOOKING_PRESETS = {
+      'Konseling Online': { service: 'Konseling Individu', mode: 'Online (Video Call)' },
+      'Konseling Tatap Muka': { service: 'Konseling Individu', mode: 'Tatap Muka di Ruang Asoka Bandung' }
+    };
+    const TIME_DEFAULTS = { 'Pagi': '09:00', 'Siang': '13:00', 'Sore': '16:00', 'Malam': '18:00' };
+    const WA_NUMBER = '6285161382920';
+    const CONSENT_URL = 'https://forms.gle/rvYimyTyfMbo6yaDA';
+    const psychById = id => psychologistsData.find(p => p.id === id);
+
+    /* =====================================================================
+       RENDER: kartu psikolog (beranda + katalog). Klien TIDAK memilih psikolog.
+       ===================================================================== */
     function renderBerandaPsychologists() {
       const container = document.getElementById('beranda-psychologists-grid');
       if (!container) return;
       container.innerHTML = psychologistsData.map(p => `
-        <div id="${p.id}" data-topic="${p.topicKey}" class="psych-card bg-white rounded-3xl p-6 border border-selaksana-border shadow-card flex flex-col justify-between hover:border-selaksana-plum/40">
+        <div id="${p.domId}" data-topic="${p.topicKey}" class="psych-card bg-white rounded-3xl p-6 border border-selaksana-border shadow-card flex flex-col justify-between hover:border-selaksana-plum/40">
           <div>
             <div class="flex items-start gap-3.5 mb-5">
-              <div class="w-11 h-11 rounded-full bg-selaksana-plum text-white font-serif font-semibold text-sm flex items-center justify-center shrink-0">
-                ${p.initials}
-              </div>
+              <div class="w-11 h-11 rounded-full bg-selaksana-plum text-white font-serif font-semibold text-sm flex items-center justify-center shrink-0">${p.initials}</div>
               <div>
-                <h3 class="font-serif font-semibold text-[15px] text-selaksana-ink leading-snug">
-                  ${p.name}
-                </h3>
+                <h3 class="font-serif font-semibold text-[15px] text-selaksana-ink leading-snug">${p.name}</h3>
                 <p class="text-[11px] text-selaksana-muted mt-0.5">${p.sipp}</p>
               </div>
             </div>
@@ -1867,145 +1975,130 @@
           </div>
           <div class="pt-4 border-t border-selaksana-border/80 flex items-center justify-between text-xs">
             <button onclick="switchPage('psikolog')" class="text-selaksana-muted hover:text-selaksana-ink transition cursor-pointer">Detail profil</button>
-            <button onclick="openBookingWithSlot('${p.name}', 'Online (Google Meet)', '${p.nextSlot}')" class="font-semibold text-selaksana-plum hover:text-selaksana-plumDark inline-flex items-center gap-1 transition cursor-pointer">
-              <span>Pilih jadwal</span>
-              <span>→</span>
+            <button onclick="openBookingModal(null, { topic: '${p.topicKey}' })" class="font-semibold text-selaksana-plum hover:text-selaksana-plumDark inline-flex items-center gap-1 transition cursor-pointer">
+              <span>Ajukan untuk topik ini</span><span aria-hidden="true">→</span>
             </button>
           </div>
         </div>
       `).join('');
     }
 
-    // Render Full Psychologist Catalog on Page Tim Psikolog
     function renderCatalogPsychologists() {
       const grid = document.getElementById('catalog-psychologists-grid');
       const query = (document.getElementById('psych-search-input')?.value || '').toLowerCase();
       if (!grid) return;
-
       const filtered = psychologistsData.filter(p =>
         p.name.toLowerCase().includes(query) ||
         p.tags.some(t => t.toLowerCase().includes(query)) ||
         p.approach.toLowerCase().includes(query)
       );
-
+      if (!filtered.length) {
+        grid.innerHTML = `<div class="md:col-span-2 bg-white rounded-3xl border border-selaksana-border p-10 text-center space-y-2">
+          <p class="font-serif font-semibold text-xl text-selaksana-ink">Tidak ada psikolog yang cocok dengan pencarian itu</p>
+          <p class="text-xs text-selaksana-muted">Coba kata kunci lain, misalnya "kecemasan", "pranikah", atau "asesmen". Atau ajukan janji temu dan biro akan memilihkan.</p>
+        </div>`;
+        return;
+      }
       grid.innerHTML = filtered.map(p => `
         <div class="bg-white rounded-3xl p-7 border border-selaksana-border shadow-card flex flex-col justify-between space-y-5">
           <div class="space-y-4">
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-full bg-selaksana-plum text-white font-serif font-bold text-base flex items-center justify-center shrink-0">
-                  ${p.initials}
-                </div>
+                <div class="w-12 h-12 rounded-full bg-selaksana-plum text-white font-serif font-bold text-base flex items-center justify-center shrink-0">${p.initials}</div>
                 <div>
                   <h3 class="font-serif font-semibold text-lg text-selaksana-ink leading-snug">${p.name}</h3>
-                  <p class="text-xs text-selaksana-plum font-medium">${p.sipp} · STR Aktif</p>
+                  <p class="text-xs text-selaksana-plum font-medium">${p.sipp} · STR aktif</p>
                 </div>
               </div>
               <span class="px-3 py-1 rounded-full bg-selaksana-subtle text-selaksana-ink text-[11px] font-medium shrink-0">${p.modes}</span>
             </div>
-
             <div class="flex flex-wrap gap-1.5">
               ${p.tags.map(t => `<span class="px-3 py-1 rounded-full bg-selaksana-bg border border-selaksana-border text-selaksana-ink text-xs font-medium">${t}</span>`).join('')}
             </div>
-
             <div class="p-4 rounded-2xl bg-selaksana-bg/80 border border-selaksana-border/70 space-y-1.5 text-xs">
               <p><span class="text-selaksana-muted">Kualifikasi:</span> <strong class="text-selaksana-ink">${p.education}</strong></p>
-              <p><span class="text-selaksana-muted">Pendekatan Terapi:</span> <strong class="text-selaksana-ink">${p.approach}</strong></p>
-              <p><span class="text-selaksana-muted">Jadwal Terdekat:</span> <strong class="text-emerald-700">${p.nextSlot}</strong></p>
+              <p><span class="text-selaksana-muted">Pendekatan terapi:</span> <strong class="text-selaksana-ink">${p.approach}</strong></p>
             </div>
           </div>
-
           <div class="flex items-center justify-between gap-3 pt-2">
-            <a href="https://wa.me/6285161382920?text=Halo%20Selaksana%2C%20saya%20ingin%20bertanya%20profil%20dan%20jadwal%20psikolog%20${encodeURIComponent(p.name)}" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-full bg-selaksana-subtle text-selaksana-ink text-xs font-semibold hover:bg-selaksana-border transition">
-              Tanya via WA
-            </a>
-            <button onclick="openBookingWithSlot('${p.name}', 'Online (Google Meet)', '${p.nextSlot}')" class="px-5 py-2.5 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition cursor-pointer">
-              Pilih Jadwal Psikolog Ini →
-            </button>
+            <a href="https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Halo Selaksana, saya ingin bertanya tentang keahlian tim psikolog.')}" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-full bg-selaksana-subtle text-selaksana-ink text-xs font-semibold hover:bg-selaksana-border transition">Tanya via WA</a>
+            <button onclick="openBookingModal(null, { topic: '${p.topicKey}' })" class="px-5 py-2.5 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition cursor-pointer">Ajukan untuk topik ini</button>
           </div>
         </div>
       `).join('');
     }
 
-    // Multi-Page Navigation Controller
-    function switchPage(pageId) {
+    /* =====================================================================
+       NAVIGASI (routing berbasis hash agar tombol kembali browser berfungsi)
+       ===================================================================== */
+    const PAGES = ['beranda', 'tentang', 'layanan', 'psikolog', 'biaya', 'edukasi', 'kontak', 'portal', 'staf'];
+    function pageFromHash() {
+      const h = (location.hash || '').replace('#', '');
+      return PAGES.includes(h) ? h : 'beranda';
+    }
+    function switchPage(pageId, opts) {
+      opts = opts || {};
+      if (!PAGES.includes(pageId)) pageId = 'beranda';
       document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
-      const target = document.getElementById('page-' + pageId);
-      if (target) {
-        target.classList.remove('hidden');
-      } else {
-        const fallback = document.getElementById('page-beranda');
-        if (fallback) fallback.classList.remove('hidden');
-      }
-
+      document.getElementById('page-' + pageId).classList.remove('hidden');
       document.querySelectorAll('.nav-btn').forEach(btn => {
-        if (btn.getAttribute('data-nav') === pageId) {
-          btn.classList.add('nav-link-active');
-        } else {
-          btn.classList.remove('nav-link-active');
-        }
+        btn.classList.toggle('nav-link-active', btn.getAttribute('data-nav') === pageId);
       });
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (!opts.fromHash && location.hash !== '#' + pageId) {
+        try { history.pushState(null, '', '#' + pageId); } catch (e) { /* abaikan */ }
+      }
+      if (pageId === 'portal') renderClientPortal();
+      if (pageId === 'staf') renderStaffGate();
+      document.title = pageId === 'staf' ? 'Dasbor Staf — Selaksana' : 'Selaksana — Biro Konsultasi Psikologi | Asesmen Pribadi, Psikoedukasi & Konseling';
+      window.scrollTo({ top: 0, behavior: opts.fromHash ? 'auto' : 'smooth' });
       if (window.lucide) lucide.createIcons();
     }
+    window.addEventListener('popstate', () => switchPage(pageFromHash(), { fromHash: true }));
 
+    function scrollToId(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
     function toggleMobileMenu() {
       const menu = document.getElementById('mobile-menu');
       if (menu) menu.classList.toggle('hidden');
     }
 
-    // Service Detail Dictionary & Modal Controller
+    /* =====================================================================
+       MODAL: helper umum (Esc untuk menutup, fokus kembali ke pemicu)
+       ===================================================================== */
+    let _lastFocus = null;
+    function showModal(id) {
+      _lastFocus = document.activeElement;
+      const m = document.getElementById(id);
+      m.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+      const f = m.querySelector('input:not([type=hidden]), select, textarea, button');
+      if (f) setTimeout(() => f.focus({ preventScroll: true }), 30);
+    }
+    function hideModal(id) {
+      document.getElementById(id).classList.add('hidden');
+      if (_lastFocus && document.body.contains(_lastFocus)) { try { _lastFocus.focus({ preventScroll: true }); } catch (e) { /* abaikan */ } }
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      ['booking-modal', 'content-modal', 'crisis-modal', 'service-detail-modal'].forEach(id => {
+        const m = document.getElementById(id);
+        if (m && !m.classList.contains('hidden')) hideModal(id);
+      });
+    });
+
+    /* =====================================================================
+       DETAIL LAYANAN
+       ===================================================================== */
     const serviceDetailsCatalog = {
-      'asesmen': {
-        badge: 'Pilar 1 · Asesmen Pribadi',
-        title: 'Asesmen Pribadi & Psikotes Resmi',
-        desc: 'Evaluasi psikologis terstandar mencakup pemetaan minat bakat, tes IQ, kesiapan sekolah, dan asesmen klinis disertai laporan tertulis PDF resmi ber-SIPP serta sesi penjelasan hasil.',
-        duration: '60 – 120 Menit (Termasuk Feedback)',
-        format: 'Online Terawasi & Tatap Muka (Ruang Asoka Bandung)',
-        cost: 'Mulai Rp450.000 (Termasuk Laporan PDF)',
-        bookingValue: 'Asesmen Pribadi'
-      },
-      'psikoedukasi': {
-        badge: 'Pilar 2 · Psikoedukasi & B2B',
-        title: 'Psikoedukasi, Kelas & Layanan Korporasi',
-        desc: 'Program kelas, seminar, dan workshop interaktif untuk sekolah, komunitas, maupun perusahaan (Employee Assistance Program) seputar regulasi emosi, komunikasi sehat, dan pencegahan burnout.',
-        duration: 'Fleksibel (Format Grup)',
-        format: 'Daring (Webinar) & Luring (In-House)',
-        cost: 'Kustomisasi sesuai kebutuhan institusi',
-        bookingValue: 'Psikoedukasi'
-      },
-      'konseling-individu': {
-        badge: 'Pilar 3 · Konseling Individu',
-        title: 'Konseling Individu Dewasa (Online & Luring)',
-        desc: 'Pendampingan privat 1-on-1 bersama Psikolog Profesi (S.Psi., Psikolog) untuk mengurai kecemasan, depresi, stres kerja, trauma, maupun pengembangan diri tanpa penghakiman.',
-        duration: '60 Menit / Sesi',
-        format: 'Online (Google Meet / Voice Call / Chat) & Tatap Muka',
-        cost: 'Rp250.000 / sesi',
-        bookingValue: 'Konseling Individu'
-      },
-      'konseling-keluarga': {
-        badge: 'Konseling Relasi & Keluarga',
-        title: 'Konseling Pasangan, Pranikah & Keluarga',
-        desc: 'Fasilitasi dialog yang aman untuk pasangan pranikah maupun suami-istri dalam menyelaraskan komunikasi, menyelesaikan konflik rumah tangga, dan menyepakati pola asuh anak.',
-        duration: '90 Menit / Sesi',
-        format: 'Online & Tatap Muka di Ruang Asoka Bandung',
-        cost: 'Rp300.000 / sesi',
-        bookingValue: 'Konseling Pasangan & Keluarga'
-      },
-      'konseling-anak': {
-        badge: 'Tumbuh Kembang Anak & Remaja',
-        title: 'Konseling Anak & Remaja',
-        desc: 'Pendampingan khusus untuk mendukung regulasi emosi anak/remaja, mengatasi kendala fokus belajar, adaptasi lingkungan sekolah, serta sesi diskusi bersama orang tua.',
-        duration: '60 Menit / Sesi',
-        format: 'Tatap Muka di Ruang Asoka Bandung & Online',
-        cost: 'Rp250.000 / sesi',
-        bookingValue: 'Konseling Anak & Remaja'
-      }
+      'asesmen': { badge: 'Pilar 1 · Asesmen Pribadi', title: 'Asesmen Pribadi & Psikotes Resmi', desc: 'Evaluasi psikologis terstandar mencakup pemetaan minat bakat, tes IQ, kesiapan sekolah, dan asesmen klinis disertai laporan tertulis PDF resmi ber-SIPP serta sesi penjelasan hasil.', duration: '60 – 120 menit (termasuk umpan balik)', format: 'Online terawasi & tatap muka (Ruang Asoka Bandung)', cost: 'Mulai Rp450.000 (termasuk laporan PDF)', bookingValue: 'Asesmen Pribadi' },
+      'psikoedukasi': { badge: 'Pilar 2 · Psikoedukasi & B2B', title: 'Psikoedukasi, Kelas & Layanan Korporasi', desc: 'Program kelas, seminar, dan workshop interaktif untuk sekolah, komunitas, maupun perusahaan (Employee Assistance Program) seputar regulasi emosi, komunikasi sehat, dan pencegahan burnout.', duration: 'Fleksibel (format grup)', format: 'Daring (webinar) & luring (in-house)', cost: 'Kustomisasi sesuai kebutuhan institusi', bookingValue: 'Psikoedukasi' },
+      'konseling-individu': { badge: 'Pilar 3 · Konseling Individu', title: 'Konseling Individu Dewasa (Online & Luring)', desc: 'Pendampingan privat 1-on-1 bersama psikolog profesi (S.Psi., Psikolog) untuk mengurai kecemasan, depresi, stres kerja, trauma, maupun pengembangan diri tanpa penghakiman.', duration: '60 menit / sesi', format: 'Online (video / voice / chat) & tatap muka', cost: 'Rp250.000 / sesi', bookingValue: 'Konseling Individu' },
+      'konseling-keluarga': { badge: 'Konseling Relasi & Keluarga', title: 'Konseling Pasangan, Pranikah & Keluarga', desc: 'Fasilitasi dialog yang aman untuk pasangan pranikah maupun suami-istri dalam menyelaraskan komunikasi, menyelesaikan konflik rumah tangga, dan menyepakati pola asuh anak.', duration: '90 menit / sesi', format: 'Online & tatap muka di Ruang Asoka Bandung', cost: 'Rp300.000 / sesi', bookingValue: 'Konseling Pasangan & Keluarga' },
+      'konseling-anak': { badge: 'Tumbuh Kembang Anak & Remaja', title: 'Konseling Anak & Remaja', desc: 'Pendampingan khusus untuk mendukung regulasi emosi anak/remaja, mengatasi kendala fokus belajar, adaptasi lingkungan sekolah, serta sesi diskusi bersama orang tua.', duration: '60 menit / sesi', format: 'Tatap muka di Ruang Asoka Bandung & online', cost: 'Rp250.000 / sesi', bookingValue: 'Konseling Anak & Remaja' }
     };
-
     let activeServiceForBooking = 'Konseling Individu';
-
     function openServiceDetail(key) {
       const item = serviceDetailsCatalog[key] || serviceDetailsCatalog['konseling-individu'];
       activeServiceForBooking = item.bookingValue;
@@ -2015,308 +2108,859 @@
       document.getElementById('svc-modal-duration').textContent = item.duration;
       document.getElementById('svc-modal-format').textContent = item.format;
       document.getElementById('svc-modal-cost').textContent = item.cost;
-      document.getElementById('service-detail-modal').classList.remove('hidden');
+      showModal('service-detail-modal');
     }
-
-    function closeServiceDetailModal() {
-      document.getElementById('service-detail-modal').classList.add('hidden');
-    }
-
+    function closeServiceDetailModal() { hideModal('service-detail-modal'); }
     function bookFromServiceDetail() {
-      closeServiceDetailModal();
+      hideModal('service-detail-modal');
       openBookingModal(activeServiceForBooking);
     }
 
-    // Interactive Issue Recommendation + Automatic Psychologist Card Highlight (Hybrid Feature)
-    let currentRecommendedPsych = 'Nuury Rahmadini Sawitry, S.Psi., Psikolog';
+    /* =====================================================================
+       TOPIK BANTUAN (beranda): menyorot keahlian tim, bukan memilih psikolog
+       ===================================================================== */
+    let currentTopic = 'kecemasan';
     let currentRecommendedService = 'Konseling Individu';
-    let prefilledSlotInfo = null;
-
+    const TOPIC_INFO = {
+      kecemasan: { title: 'Untuk kecemasan & depresi:', desc: 'Biasanya didampingi psikolog dengan keahlian CBT/ACT, misalnya <strong>Nuury Rahmadini Sawitry, S.Psi., Psikolog</strong>. Biro menentukan psikolog final sesuai ketersediaan.', service: 'Konseling Individu', label: 'Keahlian untuk kecemasan & depresi' },
+      stres: { title: 'Untuk stres kerja & kelelahan:', desc: 'Biasanya didampingi psikolog dengan keahlian burnout dan solution-focused, misalnya <strong>Adhitya Pramudya Wardani, S.Psi., Psikolog</strong>. Biro menentukan psikolog final.', service: 'Konseling Individu', label: 'Keahlian untuk stres kerja & burnout' },
+      relasi: { title: 'Untuk relasi pasangan & keluarga:', desc: 'Biasanya didampingi psikolog dengan keahlian EFT dan pranikah, misalnya <strong>Salma Nur Fadhilah, S.Psi., Psikolog</strong>. Biro menentukan psikolog final.', service: 'Konseling Pasangan & Keluarga', label: 'Keahlian untuk relasi & keluarga' },
+      remaja: { title: 'Untuk tumbuh kembang anak & remaja:', desc: 'Biasanya didampingi psikolog dengan keahlian asesmen perkembangan, misalnya <strong>Rezky Ananda Putri, S.Psi., Psikolog</strong>. Biro menentukan psikolog final.', service: 'Konseling Anak & Remaja', label: 'Keahlian untuk anak, remaja & asesmen' }
+    };
     function filterPsychologistByTopic(issueKey) {
       document.querySelectorAll('.issue-card').forEach(c => {
         c.classList.remove('border-2', 'border-selaksana-plum/50');
         c.classList.add('border', 'border-selaksana-border');
+        c.setAttribute('aria-pressed', 'false');
       });
       const activeBtn = document.getElementById('issue-btn-' + issueKey);
       if (activeBtn) {
         activeBtn.classList.remove('border', 'border-selaksana-border');
         activeBtn.classList.add('border-2', 'border-selaksana-plum/50');
+        activeBtn.setAttribute('aria-pressed', 'true');
       }
-
-      const map = {
-        kecemasan: {
-          title: 'Rekomendasi untuk Kecemasan & Depresi:',
-          desc: 'Konseling Individu (Online/Tatap Muka 60 menit) bersama <strong>Nuury Rahmadini Sawitry, S.Psi., Psikolog</strong>.',
-          psych: 'Nuury Rahmadini Sawitry, S.Psi., Psikolog',
-          service: 'Konseling Individu',
-          badgeLabel: 'Kecemasan & Depresi (Nuury Rahmadini Sawitry, S.Psi., Psikolog)'
-        },
-        stres: {
-          title: 'Rekomendasi untuk Stres Kerja & Kelelahan:',
-          desc: 'Konseling Individu & Pemetaan Burnout bersama <strong>Adhitya Pramudya Wardani, S.Psi., Psikolog</strong>.',
-          psych: 'Adhitya Pramudya Wardani, S.Psi., Psikolog',
-          service: 'Konseling Individu',
-          badgeLabel: 'Stres Kerja & Burnout (Adhitya Pramudya Wardani, S.Psi., Psikolog)'
-        },
-        relasi: {
-          title: 'Rekomendasi untuk Relasi Pasangan & Keluarga:',
-          desc: 'Konseling Pasangan, Pranikah & Parenting bersama <strong>Salma Nur Fadhilah, S.Psi., Psikolog</strong>.',
-          psych: 'Salma Nur Fadhilah, S.Psi., Psikolog',
-          service: 'Konseling Pasangan & Keluarga',
-          badgeLabel: 'Relasi & Keluarga (Salma Nur Fadhilah, S.Psi., Psikolog)'
-        },
-        remaja: {
-          title: 'Rekomendasi untuk Tumbuh Kembang Anak & Remaja:',
-          desc: 'Asesmen Pribadi & Konseling Anak/Remaja bersama <strong>Rezky Ananda Putri, S.Psi., Psikolog</strong>.',
-          psych: 'Rezky Ananda Putri, S.Psi., Psikolog',
-          service: 'Asesmen Pribadi',
-          badgeLabel: 'Anak, Remaja & Asesmen (Rezky Ananda Putri, S.Psi., Psikolog)'
-        }
-      };
-
-      const picked = map[issueKey] || map.kecemasan;
-      currentRecommendedPsych = picked.psych;
+      const picked = TOPIC_INFO[issueKey] || TOPIC_INFO.kecemasan;
+      currentTopic = TOPIC_INFO[issueKey] ? issueKey : 'kecemasan';
       currentRecommendedService = picked.service;
-      document.getElementById('rec-area-title').innerHTML = picked.title;
+      document.getElementById('rec-area-title').textContent = picked.title;
       document.getElementById('rec-area-desc').innerHTML = picked.desc;
 
-      // Apply visual highlight & dim to the 4 Psychologist Cards
       const feedbackBox = document.getElementById('filter-feedback');
       const feedbackTxt = document.getElementById('filter-feedback-text');
       const resetBtn = document.getElementById('reset-highlight-btn');
       if (feedbackBox && feedbackTxt) {
         feedbackBox.classList.remove('hidden');
-        feedbackTxt.textContent = 'Menyorot: ' + picked.badgeLabel;
+        feedbackTxt.textContent = 'Menyorot: ' + picked.label;
       }
       if (resetBtn) resetBtn.classList.remove('hidden');
-
       document.querySelectorAll('.psych-card').forEach(card => {
-        if (card.getAttribute('data-topic') === issueKey) {
-          card.classList.add('psych-highlight');
-          card.classList.remove('psych-dim');
-        } else {
-          card.classList.remove('psych-highlight');
-          card.classList.add('psych-dim');
-        }
+        const on = card.getAttribute('data-topic') === currentTopic;
+        card.classList.toggle('psych-highlight', on);
+        card.classList.toggle('psych-dim', !on);
       });
-
-      const targetSection = document.getElementById('seksi-psikolog-beranda');
-      if (targetSection) {
-        targetSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      scrollToId('seksi-psikolog-beranda');
     }
-
     function clearPsychologistFilter() {
-      document.querySelectorAll('.psych-card').forEach(card => {
-        card.classList.remove('psych-highlight', 'psych-dim');
-      });
-      const feedbackBox = document.getElementById('filter-feedback');
-      const resetBtn = document.getElementById('reset-highlight-btn');
-      if (feedbackBox) feedbackBox.classList.add('hidden');
-      if (resetBtn) resetBtn.classList.add('hidden');
+      document.querySelectorAll('.psych-card').forEach(card => card.classList.remove('psych-highlight', 'psych-dim'));
+      document.getElementById('filter-feedback')?.classList.add('hidden');
+      document.getElementById('reset-highlight-btn')?.classList.add('hidden');
     }
-
     function triggerRecommendedBooking() {
-      openBookingModal(currentRecommendedService, currentRecommendedPsych);
+      openBookingModal(currentRecommendedService, { topic: currentTopic });
     }
 
-    // Duration Rate Switcher on Biaya & Jadwal Page (60 Menit vs 90 Menit)
+    /* =====================================================================
+       BIAYA: pengalih durasi
+       ===================================================================== */
     function setDurationRate(minutes) {
-      const btn60 = document.getElementById('dur-btn-60');
-      const btn90 = document.getElementById('dur-btn-90');
-      const lblOnline = document.getElementById('label-dur-online');
-      const lblOffline = document.getElementById('label-dur-offline');
-      const priceOnline = document.getElementById('price-online');
-      const priceOffline = document.getElementById('price-offline');
-
-      if (minutes === 90) {
-        btn90.className = 'px-4 py-2 rounded-full text-xs font-semibold bg-selaksana-plum text-white transition';
-        btn60.className = 'px-4 py-2 rounded-full text-xs font-semibold text-selaksana-ink hover:text-selaksana-plum transition';
-        if (lblOnline) lblOnline.textContent = '90 Menit';
-        if (lblOffline) lblOffline.textContent = '90 Menit';
-        if (priceOnline) priceOnline.textContent = 'Rp 350.000';
-        if (priceOffline) priceOffline.textContent = 'Rp 475.000';
-      } else {
-        btn60.className = 'px-4 py-2 rounded-full text-xs font-semibold bg-selaksana-plum text-white transition';
-        btn90.className = 'px-4 py-2 rounded-full text-xs font-semibold text-selaksana-ink hover:text-selaksana-plum transition';
-        if (lblOnline) lblOnline.textContent = '60 Menit';
-        if (lblOffline) lblOffline.textContent = '60 Menit';
-        if (priceOnline) priceOnline.textContent = 'Rp 250.000';
-        if (priceOffline) priceOffline.textContent = 'Rp 350.000';
-      }
+      const on = 'px-4 py-2 rounded-full text-xs font-semibold bg-selaksana-plum text-white transition';
+      const off = 'px-4 py-2 rounded-full text-xs font-semibold text-selaksana-ink hover:text-selaksana-plum transition';
+      const is90 = minutes === 90;
+      document.getElementById('dur-btn-90').className = is90 ? on : off;
+      document.getElementById('dur-btn-60').className = is90 ? off : on;
+      document.getElementById('label-dur-online').textContent = is90 ? '90 Menit' : '60 Menit';
+      document.getElementById('label-dur-offline').textContent = is90 ? '90 Menit' : '60 Menit';
+      document.getElementById('price-online').textContent = is90 ? 'Rp 350.000' : 'Rp 250.000';
+      document.getElementById('price-offline').textContent = is90 ? 'Rp 475.000' : 'Rp 350.000';
     }
 
-    // Smart Booking Modal Controllers (with Slot Prefill & Fee Calculator)
+    /* =====================================================================
+       DATA PERMINTAAN JANJI TEMU (dibagikan antara formulir klien & dasbor staf)
+       ===================================================================== */
+    const BOOKINGS_KEY = 'selaksana.bookings.v1';
+    const MY_BOOKING_KEY = 'selaksana.myBooking';
+    const PSYCH_ACTIVE_KEY = 'selaksana.psychActive';
+
+    function seedBookings() {
+      const ago = h => new Date(Date.now() - h * 3600 * 1000).toISOString();
+      const row = (n, o) => Object.assign({ id: 'REQ-' + String(100 + n).padStart(4, '0'), demo: true, wa: '', notes: '', psychId: null, sessionDate: null, sessionTime: null, status: 'menunggu' }, o);
+      return [
+        row(1, { createdAt: ago(2), alias: 'Dinda A.', service: 'Konseling Individu', mode: 'Online (Video Call)', topic: 'kecemasan', prefDate: nextWorkingDay(1), prefTime: 'Sore (15.00–18.00)', notes: 'Pertama kali konseling.' }),
+        row(2, { createdAt: ago(5), alias: 'Rafi & Salsa', service: 'Konseling Pasangan & Keluarga', mode: 'Tatap Muka di Ruang Asoka Bandung', topic: 'relasi', prefDate: nextWorkingDay(2), prefTime: 'Pagi (09.00–12.00)', notes: 'Persiapan pranikah, rencana menikah awal tahun.' }),
+        row(3, { createdAt: ago(9), alias: 'Ibu Tari (anak 9 th)', service: 'Konseling Anak & Remaja', mode: 'Online (Video Call)', topic: 'remaja', prefDate: nextWorkingDay(3), prefTime: 'Siang (12.00–15.00)', notes: 'Anak sulit fokus di sekolah.' }),
+        row(4, { createdAt: ago(20), alias: 'Kevin S.', service: 'Asesmen Pribadi', mode: 'Tatap Muka di Ruang Asoka Bandung', topic: 'lainnya', prefDate: nextWorkingDay(4), prefTime: 'Pagi (09.00–12.00)', notes: 'Butuh asesmen minat bakat untuk pindah karier.' }),
+        row(5, { createdAt: ago(30), alias: 'Bagas P.', service: 'Konseling Individu', mode: 'Online (Video Call)', topic: 'stres', prefDate: nextWorkingDay(1), prefTime: 'Siang (12.00–15.00)', psychId: 'ap', sessionDate: nextWorkingDay(1), sessionTime: '14:00', status: 'dikonfirmasi' }),
+        row(6, { createdAt: ago(40), alias: 'Maya R.', service: 'Konseling Individu', mode: 'Online (Video Call)', topic: 'kecemasan', prefDate: nextWorkingDay(2), prefTime: 'Pagi (09.00–12.00)', psychId: 'nr', sessionDate: nextWorkingDay(2), sessionTime: '10:30', status: 'dikonfirmasi' }),
+        row(7, { createdAt: ago(52), alias: 'Nadia & Reza', service: 'Konseling Pasangan & Keluarga', mode: 'Online (Video Call)', topic: 'relasi', prefDate: nextWorkingDay(3), prefTime: 'Malam (18.00–20.00)', psychId: 'sn', sessionDate: nextWorkingDay(3), sessionTime: '18:30', status: 'dikonfirmasi' }),
+        row(8, { createdAt: ago(100), alias: 'Anisa W.', service: 'Konseling Individu', mode: 'Online (Voice Call Tanpa Kamera)', topic: 'kecemasan', prefDate: addDays(-3), prefTime: 'Sore (15.00–18.00)', psychId: 'nr', sessionDate: addDays(-3), sessionTime: '16:00', status: 'selesai' }),
+        row(9, { createdAt: ago(130), alias: 'Ibu Wulan (anak 14 th)', service: 'Asesmen Pribadi', mode: 'Tatap Muka di Ruang Asoka Bandung', topic: 'remaja', prefDate: addDays(-5), prefTime: 'Pagi (09.00–12.00)', psychId: 'ra', sessionDate: addDays(-5), sessionTime: '09:00', status: 'selesai' }),
+        row(10, { createdAt: ago(75), alias: 'Yoga T.', service: 'Konseling Individu', mode: 'Online (Chat Terjadwal)', topic: 'stres', prefDate: addDays(-1), prefTime: 'Malam (18.00–20.00)', status: 'dibatalkan' })
+      ];
+    }
+    function loadBookings() {
+      let list = Store.get(BOOKINGS_KEY, null);
+      if (!Array.isArray(list)) { list = seedBookings(); Store.set(BOOKINGS_KEY, list); }
+      return list;
+    }
+    function saveBookings(list) { Store.set(BOOKINGS_KEY, list); }
+    function nextBookingId(list) {
+      const max = list.reduce((m, b) => Math.max(m, parseInt(String(b.id).replace(/\D/g, ''), 10) || 0), 100);
+      return 'REQ-' + String(max + 1).padStart(4, '0');
+    }
+    function waDigits(raw) {
+      let d = String(raw || '').replace(/\D/g, '');
+      if (d.startsWith('0')) d = '62' + d.slice(1);
+      return d;
+    }
+    function validWA(raw) { return /^628\d{8,11}$/.test(waDigits(raw)); }
+
+    /* =====================================================================
+       FORMULIR JANJI TEMU (klien tidak memilih psikolog)
+       ===================================================================== */
     function updateEstimatedFee() {
       const svc = document.getElementById('book-service')?.value || '';
       const feeEl = document.getElementById('estimated-fee');
-      if (!feeEl) return;
-      if (svc.includes('Pasangan')) {
-        feeEl.textContent = 'Rp300.000 / 90 menit';
-      } else if (svc.includes('Asesmen')) {
-        feeEl.textContent = 'Rp450.000 – Rp750.000 (Termasuk PDF)';
-      } else if (svc.includes('Psikoedukasi')) {
-        feeEl.textContent = 'Sesuai Program / Instansi';
-      } else {
-        feeEl.textContent = 'Rp250.000 / 60 menit';
-      }
+      if (feeEl) feeEl.textContent = (SERVICES[svc] || SERVICES['Konseling Individu']).fee;
     }
-
-    function openBookingModal(defaultService, defaultPsych) {
-      if (defaultService) {
-        const sEl = document.getElementById('book-service');
-        if (sEl) sEl.value = defaultService;
-      }
-      if (defaultPsych) {
-        const pEl = document.getElementById('book-psychologist');
-        if (pEl) pEl.value = defaultPsych;
-      }
-      updateEstimatedFee();
-      document.getElementById('booking-modal').classList.remove('hidden');
-    }
-
-    function openBookingWithSlot(psychName, modeName, slotTime) {
-      prefilledSlotInfo = `${slotTime} (${modeName})`;
-      const pEl = document.getElementById('book-psychologist');
+    function openBookingModal(preset, opts) {
+      opts = opts || {};
+      document.getElementById('booking-form-view').classList.remove('hidden');
+      document.getElementById('booking-success-view').classList.add('hidden');
+      document.getElementById('booking-error').classList.add('hidden');
+      const sEl = document.getElementById('book-service');
       const mEl = document.getElementById('book-mode');
-      const schedEl = document.getElementById('book-schedule');
-      if (pEl) pEl.value = psychName;
-      if (mEl) mEl.value = modeName;
-      if (schedEl && slotTime) schedEl.value = slotTime;
-
-      const badge = document.getElementById('slot-prefilled-badge');
-      const text = document.getElementById('slot-prefilled-text');
-      if (badge && text) {
-        badge.classList.remove('hidden');
-        text.textContent = `Slot Terpilih: ${slotTime} · ${modeName}`;
-      }
+      const tEl = document.getElementById('book-topic');
+      const p = BOOKING_PRESETS[preset];
+      if (p) { sEl.value = p.service; mEl.value = p.mode; }
+      else if (preset && SERVICES[preset]) { sEl.value = preset; }
+      if (opts.topic && TOPICS[opts.topic]) tEl.value = opts.topic;
+      const dEl = document.getElementById('book-date');
+      dEl.min = addDays(1);
+      if (!dEl.value || dEl.value < dEl.min) dEl.value = nextWorkingDay(2);
       updateEstimatedFee();
-      document.getElementById('booking-modal').classList.remove('hidden');
+      showModal('booking-modal');
     }
+    function closeBookingModal() { hideModal('booking-modal'); }
 
-    function clearPrefilledSlot() {
-      prefilledSlotInfo = null;
-      const badge = document.getElementById('slot-prefilled-badge');
-      if (badge) badge.classList.add('hidden');
+    function showBookingError(msg) {
+      const el = document.getElementById('booking-error');
+      el.textContent = msg;
+      el.classList.remove('hidden');
     }
-
-    function closeBookingModal() {
-      document.getElementById('booking-modal').classList.add('hidden');
-    }
-
     function submitBookingForm(e) {
       e.preventDefault();
-      const name = document.getElementById('book-name').value;
-      const wa = document.getElementById('book-wa')?.value || '-';
+      const name = document.getElementById('book-name').value.trim();
+      const wa = document.getElementById('book-wa').value.trim();
       const service = document.getElementById('book-service').value;
       const mode = document.getElementById('book-mode').value;
-      const psych = document.getElementById('book-psychologist').value;
-      const sched = document.getElementById('book-schedule').value;
-      const fee = document.getElementById('estimated-fee')?.textContent || '';
+      const topic = document.getElementById('book-topic').value;
+      const prefDate = document.getElementById('book-date').value;
+      const prefTime = document.getElementById('book-time').value;
+      const notes = document.getElementById('book-notes').value.trim();
+      if (!name) return showBookingError('Isi nama panggilan atau samaran. Tidak perlu nama lengkap.');
+      if (!validWA(wa)) return showBookingError('Nomor WhatsApp belum valid. Contoh: 081234567890.');
+      if (!prefDate || prefDate < addDays(1)) return showBookingError('Pilih tanggal mulai besok atau setelahnya.');
+      if (!document.getElementById('book-consent').checked) return showBookingError('Centang persetujuan kerahasiaan dan Informed Consent untuk melanjutkan.');
 
-      // Update Client Portal Active Ticket Preview
-      document.getElementById('portal-alias-display').textContent = name;
-      document.getElementById('portal-active-psych').textContent = psych;
-      document.getElementById('portal-active-mode').textContent = mode;
-      document.getElementById('portal-active-date').textContent = sched + ' (60 Menit)';
+      const list = loadBookings();
+      const booking = { id: nextBookingId(list), demo: false, createdAt: new Date().toISOString(), alias: name, wa, service, mode, topic, prefDate, prefTime, notes, psychId: null, sessionDate: null, sessionTime: null, status: 'menunggu' };
+      list.push(booking);
+      saveBookings(list);
+      Store.set(MY_BOOKING_KEY, booking.id);
+      Store.set('selaksana.alias', name);
 
-      closeBookingModal();
-      showToast('Mengalihkan ke WhatsApp resmi Selaksana (+62 851-6138-2920)...');
-
-      const waText = `Halo Admin Selaksana,\nSaya (${name}, WA: ${wa}) ingin membuat janji temu:\n- Jenis Layanan: ${service}\n- Format Sesi: ${mode}\n- Psikolog Praktisi: ${psych}\n- Preferensi Jadwal: ${sched}\n- Estimasi Biaya: ${fee}\n- Form Informed Consent: https://forms.gle/rvYimyTyfMbo6yaDA\n\nMohon konfirmasi ketersediaan jadwal. Terima kasih.`;
-      window.open(`https://wa.me/6285161382920?text=${encodeURIComponent(waText)}`, '_blank');
+      const waText = `Halo Admin Selaksana,\nSaya (${name}) mengajukan janji temu dengan nomor ${booking.id}:\n- Layanan: ${service}\n- Format: ${mode}\n- Topik utama: ${TOPICS[topic]}\n- Preferensi jadwal: ${fmtDate(prefDate, true)}, ${prefTime}\n${notes ? '- Catatan: ' + notes + '\n' : ''}- Psikolog: mohon ditentukan oleh biro\n- Informed Consent: ${CONSENT_URL}\n\nMohon konfirmasi psikolog dan jadwalnya. Terima kasih.`;
+      document.getElementById('success-id').textContent = booking.id;
+      document.getElementById('success-wa-link').href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waText)}`;
+      document.getElementById('booking-form-view').classList.add('hidden');
+      document.getElementById('booking-success-view').classList.remove('hidden');
+      document.getElementById('booking-form').reset();
+      if (window.lucide) lucide.createIcons();
     }
 
-    // Crisis Modal Controllers
-    function openCrisisModal() {
-      document.getElementById('crisis-modal').classList.remove('hidden');
+    /* =====================================================================
+       MODAL KONTEN: Informed Consent, kebijakan, syarat, artikel
+       ===================================================================== */
+    const CONTENT = {
+      consent: { badge: 'Dokumen etika & persetujuan klien', title: 'Informed Consent Layanan Psikologi Selaksana', cta: true, html: `
+        <p><strong class="text-selaksana-ink">1. Tujuan &amp; manfaat layanan.</strong> Asesmen pribadi, psikoedukasi, dan konseling membantu klien mengenali kondisi diri, mengelola emosi, dan menyusun langkah pemulihan bersama psikolog berlisensi (S.Psi., Psikolog).</p>
+        <p><strong class="text-selaksana-ink">2. Penugasan psikolog.</strong> Psikolog ditentukan oleh biro berdasarkan kebutuhan klien, keahlian, dan ketersediaan jadwal. Klien diberi tahu nama psikolog sebelum sesi.</p>
+        <p><strong class="text-selaksana-ink">3. Durasi &amp; toleransi kehadiran.</strong> Sesi berlangsung ±60 menit (90 menit untuk sesi pasangan atau mendalam), daring maupun tatap muka di Ruang Asoka Bandung. Toleransi keterlambatan maksimal <strong>10 menit</strong>.</p>
+        <p><strong class="text-selaksana-ink">4. Kerahasiaan data.</strong> Cerita, identitas, dan hasil asesmen bersifat rahasia dan tidak dibagikan kepada pihak ketiga tanpa izin tertulis klien, sesuai Kode Etik Psikologi Indonesia.</p>
+        <p><strong class="text-selaksana-ink">5. Hak kenyamanan emosional.</strong> Klien berhak memakai nama samaran, meminta jeda saat membahas pengalaman sensitif, dan menjadwalkan ulang sesi maksimal H-1 (24 jam sebelumnya).</p>` },
+      privasi: { badge: 'Legal & etika', title: 'Kebijakan Privasi & Perlindungan Data Klien', html: `
+        <p><strong class="text-selaksana-ink">Data yang kami kumpulkan.</strong> Nama panggilan atau samaran, nomor WhatsApp, jenis layanan, topik utama, dan preferensi jadwal. Detail cerita dibahas langsung bersama psikolog, bukan lewat formulir.</p>
+        <p><strong class="text-selaksana-ink">Cara kami memakainya.</strong> Hanya untuk mencocokkan psikolog, mengatur jadwal, dan mengirim pengingat sesi.</p>
+        <p><strong class="text-selaksana-ink">Siapa yang bisa melihat.</strong> Staf biro yang bertugas dan psikolog yang menangani sesi. Data tidak dibagikan ke pihak ketiga tanpa persetujuan tertulis.</p>
+        <p><strong class="text-selaksana-ink">Hak klien.</strong> Klien dapat meminta salinan, koreksi, atau penghapusan data non-rekam medis lewat resepsionis di WhatsApp +62 851-6138-2920 atau di.selaksana@gmail.com.</p>
+        <p class="text-[11px]">Catatan: situs ini menyimpan data formulir di peramban perangkatmu untuk keperluan tampilan portal.</p>` },
+      syarat: { badge: 'Legal & etika', title: 'Syarat, Ketentuan & Kebijakan Reschedule', html: `
+        <p><strong class="text-selaksana-ink">Pengajuan &amp; konfirmasi.</strong> Permintaan janji temu menjadi jadwal pasti setelah resepsionis mengonfirmasi psikolog, tanggal, dan jam lewat WhatsApp.</p>
+        <p><strong class="text-selaksana-ink">Pembayaran.</strong> Detail pembayaran (transfer bank atau QRIS) dikirim saat konfirmasi. Jadwal terkunci setelah pembayaran diterima.</p>
+        <p><strong class="text-selaksana-ink">Reschedule.</strong> Gratis jika diajukan maksimal 24 jam sebelum sesi, lewat resepsionis atau Portal Klien.</p>
+        <p><strong class="text-selaksana-ink">Keterlambatan.</strong> Toleransi 10 menit. Waktu sesi tidak diperpanjang untuk keterlambatan klien.</p>
+        <p><strong class="text-selaksana-ink">Kecocokan psikolog.</strong> Jika merasa kurang cocok dengan psikolog yang ditugaskan, sampaikan ke resepsionis. Biro akan meninjau dan menawarkan penugasan ulang bila memungkinkan.</p>` },
+      'artikel-0': { badge: 'Regulasi emosi · 4 menit baca', title: 'Teknik Grounding 5-4-3-2-1 Saat Pikiran Mulai Kewalahan', html: `
+        <p>Saat cemas, perhatian kita sering terlempar ke bayangan masa depan. Grounding membawa perhatian kembali ke saat ini lewat panca indera. Tekniknya sederhana dan bisa dilakukan di mana saja.</p>
+        <ol class="list-decimal pl-5 space-y-1.5">
+          <li><strong class="text-selaksana-ink">5 hal yang kamu lihat.</strong> Sebutkan pelan-pelan, misalnya cangkir, jendela, pena.</li>
+          <li><strong class="text-selaksana-ink">4 hal yang bisa kamu sentuh.</strong> Rasakan tekstur baju, meja, atau lantai di bawah kaki.</li>
+          <li><strong class="text-selaksana-ink">3 hal yang kamu dengar.</strong> Suara kipas, langkah kaki, napasmu sendiri.</li>
+          <li><strong class="text-selaksana-ink">2 hal yang kamu cium.</strong> Jika tidak ada, ingat dua aroma yang menenangkan.</li>
+          <li><strong class="text-selaksana-ink">1 hal yang kamu rasakan di mulut.</strong> Seteguk air atau sisa rasa teh.</li>
+        </ol>
+        <p>Tarik napas perlahan di antara setiap langkah. Tujuannya bukan menghilangkan cemas, tetapi memberi jeda agar kamu bisa memilih langkah berikutnya.</p>
+        <p>Jika serangan cemas sering muncul atau mengganggu aktivitas harian, bicarakan dengan psikolog. Dalam situasi krisis yang mengancam jiwa, hubungi SEJIWA 119 ext. 8 atau IGD terdekat.</p>` },
+      'artikel-1': { badge: 'Panduan sesi · 3 menit baca', title: 'Apa yang Sebenarnya Terjadi di Sesi Konseling Pertama?', html: `
+        <p>Banyak orang menunda konseling karena takut harus menceritakan semuanya sekaligus. Sesi pertama tidak berjalan seperti itu.</p>
+        <ul class="list-disc pl-5 space-y-1.5">
+          <li><strong class="text-selaksana-ink">Perkenalan &amp; kesepakatan.</strong> Psikolog menjelaskan alur sesi, batas kerahasiaan, dan hakmu, termasuk meminta jeda kapan saja.</li>
+          <li><strong class="text-selaksana-ink">Cerita sebisanya.</strong> Kamu memutuskan seberapa banyak yang dibagikan. Tidak ada cerita yang terlalu kecil atau terlalu berantakan.</li>
+          <li><strong class="text-selaksana-ink">Memetakan tujuan.</strong> Bersama-sama kalian menentukan apa yang ingin berubah dan bagaimana tandanya jika sudah membaik.</li>
+          <li><strong class="text-selaksana-ink">Rencana berikutnya.</strong> Frekuensi sesi dan latihan ringan disepakati sebelum sesi berakhir.</li>
+        </ul>
+        <p>Sesi pertama adalah tempat saling mengenal. Pendampingan yang lebih dalam berjalan pelan, mengikuti kesiapanmu.</p>` },
+      'artikel-2': { badge: 'Asesmen & anak · 5 menit baca', title: 'Memahami Hasil Asesmen Minat Bakat & Kesiapan Sekolah Anak', html: `
+        <p>Hasil asesmen psikologis bukan label atau vonis. Ia adalah peta: apa yang sudah kuat, apa yang masih tumbuh, dan dukungan apa yang membantu.</p>
+        <ul class="list-disc pl-5 space-y-1.5">
+          <li><strong class="text-selaksana-ink">Skor adalah satu potongan.</strong> Angka dibaca bersama hasil observasi dan wawancara, bukan berdiri sendiri.</li>
+          <li><strong class="text-selaksana-ink">Profil kekuatan.</strong> Laporan menyoroti potensi anak, termasuk gaya belajar dan minat yang menonjol.</li>
+          <li><strong class="text-selaksana-ink">Area pendampingan.</strong> Bagian yang perlu dukungan dirumuskan sebagai langkah, bukan kekurangan.</li>
+          <li><strong class="text-selaksana-ink">Sesi penjelasan.</strong> Psikolog membahas hasil bersama orang tua dan menjawab pertanyaan sebelum laporan dipakai di sekolah.</li>
+        </ul>
+        <p>Saat membaca laporan, tanyakan: apa yang bisa kami lakukan di rumah minggu ini? Jawabannya lebih berguna daripada membandingkan angka dengan anak lain.</p>` }
+    };
+    function openContent(key) {
+      const c = CONTENT[key];
+      if (!c) return;
+      document.getElementById('content-modal-badge').textContent = c.badge;
+      document.getElementById('content-modal-title').textContent = c.title;
+      document.getElementById('content-modal-body').innerHTML = c.html;
+      document.getElementById('content-modal-cta').classList.toggle('hidden', !c.cta);
+      showModal('content-modal');
     }
+    function closeContentModal() { hideModal('content-modal'); }
+    function openInformedConsentModal() { openContent('consent'); }
+    function openLegalModal(type) { openContent(type === 'privasi' ? 'privasi' : 'syarat'); }
+    function openArticleModal(idx) { openContent('artikel-' + idx); }
+    function openCrisisModal() { showModal('crisis-modal'); }
+    function closeCrisisModal() { hideModal('crisis-modal'); }
 
-    function closeCrisisModal() {
-      document.getElementById('crisis-modal').classList.add('hidden');
+    /* =====================================================================
+       PORTAL KLIEN
+       ===================================================================== */
+    function statusBadge(status) {
+      const map = {
+        menunggu: ['Menunggu penugasan', 'bg-amber-50 text-amber-800 border-amber-200'],
+        dikonfirmasi: ['Terkonfirmasi', 'bg-emerald-50 text-emerald-700 border-emerald-200'],
+        selesai: ['Selesai', 'bg-selaksana-subtle text-selaksana-ink border-selaksana-border'],
+        dibatalkan: ['Dibatalkan', 'bg-rose-50 text-rose-700 border-rose-200']
+      };
+      const [label, cls] = map[status] || map.menunggu;
+      return `<span class="inline-flex items-center px-2.5 py-1 rounded-full border text-[11px] font-semibold ${cls}">${label}</span>`;
     }
-
-    // Informed Consent & Legal Modal Controllers
-    function openInformedConsentModal() {
-      document.getElementById('legal-modal-title').textContent = 'Informed Consent Layanan Psikologi Selaksana';
-      document.getElementById('consent-modal').classList.remove('hidden');
-    }
-
-    function openLegalModal(type) {
-      const titleEl = document.getElementById('legal-modal-title');
-      if (type === 'privasi') {
-        titleEl.textContent = 'Kebijakan Privasi & Perlindungan Data Klien';
-      } else {
-        titleEl.textContent = 'Syarat, Ketentuan & Kebijakan Reschedule Sesi';
+    function renderClientPortal() {
+      const host = document.getElementById('portal-jadwal');
+      if (!host) return;
+      const list = loadBookings();
+      const mine = list.find(b => b.id === Store.get(MY_BOOKING_KEY, null));
+      const aliasOverride = Store.get('selaksana.alias', null);
+      const badge = document.getElementById('portal-badge');
+      const aliasEl = document.getElementById('portal-alias-display');
+      let b = mine, isDemo = false;
+      if (!b) {
+        isDemo = true;
+        b = { id: 'CONTOH', alias: aliasOverride || 'Maya R.', service: 'Konseling Individu', mode: 'Online (Video Call)', topic: 'kecemasan', prefDate: addDays(2), prefTime: 'Pagi (09.00–12.00)', psychId: 'nr', sessionDate: addDays(2), sessionTime: '10:30', status: 'dikonfirmasi' };
       }
-      document.getElementById('consent-modal').classList.remove('hidden');
-    }
+      aliasEl.textContent = aliasOverride || b.alias;
+      const aliasInput = document.getElementById('input-alias-name');
+      if (aliasInput && document.activeElement !== aliasInput) aliasInput.value = aliasOverride || b.alias;
+      badge.textContent = isDemo ? 'Contoh tampilan: belum ada permintaan di perangkat ini' : 'Permintaan ' + b.id;
 
-    function closeInformedConsentModal() {
-      document.getElementById('consent-modal').classList.add('hidden');
-    }
-
-    function openArticleModal(idx) {
-      const titles = [
-        'Teknik Grounding 5-4-3-2-1 Saat Pikiran Mulai Kewalahan',
-        'Apa yang Sebenarnya Terjadi di Sesi Konseling Pertama?',
-        'Memahami Hasil Asesmen Minat Bakat & Kesiapan Sekolah Anak'
+      const psych = psychById(b.psychId);
+      const dur = (SERVICES[b.service] || { min: 60 }).min;
+      const endMin = b.sessionTime ? timeToMin(b.sessionTime) + dur : 0;
+      const endStr = b.sessionTime ? pad2(Math.floor(endMin / 60)) + '.' + pad2(endMin % 60) : '';
+      const steps = [
+        ['Permintaan diterima', true],
+        ['Biro mencocokkan psikolog', b.status !== 'menunggu'],
+        ['Jadwal dikonfirmasi', b.status === 'dikonfirmasi' || b.status === 'selesai']
       ];
-      document.getElementById('legal-modal-title').textContent = titles[idx] || titles[0];
-      document.getElementById('consent-modal').classList.remove('hidden');
+      const stepper = `<ol class="flex flex-col sm:flex-row gap-3 sm:gap-6 text-xs">${steps.map((s, i) => `
+        <li class="flex items-center gap-2 ${s[1] ? 'text-selaksana-ink font-semibold' : 'text-selaksana-muted'}">
+          <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${s[1] ? 'bg-selaksana-plum text-white' : 'bg-selaksana-subtle border border-selaksana-border'}">${s[1] ? '✓' : i + 1}</span>${s[0]}
+        </li>`).join('')}</ol>`;
+
+      const psychBlock = psych
+        ? `<div class="pt-3 border-t border-selaksana-border flex items-center gap-3">
+             <div class="w-10 h-10 rounded-full bg-selaksana-plumLight text-selaksana-plum font-serif font-bold text-sm flex items-center justify-center">${psych.initials}</div>
+             <div><p class="text-xs font-semibold text-selaksana-ink">${psych.name}</p><p class="text-[11px] text-selaksana-muted">${psych.sipp} · ${psych.tags[0]}</p></div>
+           </div>`
+        : `<div class="pt-3 border-t border-selaksana-border flex items-center gap-3">
+             <div class="w-10 h-10 rounded-full bg-selaksana-subtle text-selaksana-muted flex items-center justify-center"><i data-lucide="hourglass" class="w-4 h-4"></i></div>
+             <div><p class="text-xs font-semibold text-selaksana-ink">Psikolog sedang ditentukan biro</p><p class="text-[11px] text-selaksana-muted">Nama dan jadwal pasti dikirim lewat WhatsApp setelah dicocokkan.</p></div>
+           </div>`;
+
+      let side;
+      if (b.status === 'dikonfirmasi') {
+        side = `<p class="text-[11px] font-semibold uppercase tracking-wider text-selaksana-muted">Ruang sesi</p>
+          <button onclick="showToast('${isDemo ? 'Contoh tampilan. Tautan sesi aktif pada jadwal yang sebenarnya.' : 'Tautan ruang sesi dikirim psikolog lewat WhatsApp sebelum sesi.'}')" class="w-full py-3 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer"><i data-lucide="video" class="w-4 h-4"></i><span>Masuk ruang sesi</span></button>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button onclick="openBookingModal('${b.service.replace(/'/g, '')}', { topic: '${b.topic}' })" class="py-2 px-3 rounded-xl bg-white border border-selaksana-border text-[11px] font-semibold text-selaksana-ink hover:border-selaksana-plum cursor-pointer">Ajukan reschedule</button>
+            <a href="${CONSENT_URL}" target="_blank" rel="noopener noreferrer" class="py-2 px-3 rounded-xl bg-white border border-selaksana-border text-[11px] font-semibold text-selaksana-plum hover:border-selaksana-plum inline-flex items-center justify-center gap-1"><span>Informed Consent</span><i data-lucide="external-link" class="w-3 h-3"></i></a>
+          </div>`;
+      } else if (b.status === 'menunggu') {
+        side = `<p class="text-[11px] font-semibold uppercase tracking-wider text-selaksana-muted">Langkah berikutnya</p>
+          <p class="text-xs text-selaksana-ink/90 leading-relaxed">Resepsionis akan menghubungimu lewat WhatsApp untuk mengonfirmasi psikolog dan jadwal.</p>
+          <a href="https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Halo Selaksana, saya ingin menanyakan status permintaan ' + b.id + '.')}" target="_blank" rel="noopener noreferrer" class="w-full py-3 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition flex items-center justify-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i><span>Tanya status via WhatsApp</span></a>`;
+      } else {
+        side = `<p class="text-xs text-selaksana-ink/90 leading-relaxed">${b.status === 'selesai' ? 'Sesi ini sudah selesai. Terima kasih sudah memercayakan prosesnya.' : 'Permintaan ini dibatalkan.'}</p>
+          <button onclick="openBookingModal('${b.service.replace(/'/g, '')}')" class="w-full py-3 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition cursor-pointer">Ajukan janji temu baru</button>`;
+      }
+
+      const dateLine = b.status === 'dikonfirmasi' || b.status === 'selesai'
+        ? `${fmtDate(b.sessionDate, true)} · ${b.sessionTime.replace(':', '.')}–${endStr} WIB`
+        : `Preferensimu: ${fmtDate(b.prefDate, true)}, ${b.prefTime}`;
+
+      host.innerHTML = `
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-selaksana-border shadow-card grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-8 space-y-4">
+            <div class="flex flex-wrap items-center gap-2">${statusBadge(b.status)}<span class="px-3 py-1 rounded-full bg-selaksana-subtle text-selaksana-ink text-[11px] font-medium">${esc(b.service)}</span></div>
+            <h2 class="font-serif font-semibold text-2xl text-selaksana-ink sensitive-data">${esc(TOPICS[b.topic] || 'Pendampingan psikologis')}</h2>
+            ${stepper}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-1">
+              <div class="flex items-start gap-2.5"><i data-lucide="calendar" class="w-4 h-4 text-selaksana-plum shrink-0 mt-0.5"></i><div><p class="text-selaksana-muted">${b.status === 'menunggu' ? 'Waktu yang kamu minta' : 'Jadwal sesi'}</p><p class="font-semibold text-selaksana-ink">${dateLine}</p></div></div>
+              <div class="flex items-start gap-2.5"><i data-lucide="video" class="w-4 h-4 text-selaksana-plum shrink-0 mt-0.5"></i><div><p class="text-selaksana-muted">Format</p><p class="font-semibold text-selaksana-ink">${esc(b.mode)}</p></div></div>
+            </div>
+            ${psychBlock}
+          </div>
+          <div class="lg:col-span-4 bg-selaksana-bg rounded-2xl p-5 border border-selaksana-border space-y-3 text-center">${side}</div>
+        </div>`;
+      if (window.lucide) lucide.createIcons();
+      renderJournalCount();
     }
 
-    // Client Portal Interactive Features
     function togglePrivacyMask() {
       const wrap = document.getElementById('portal-privacy-wrapper');
       const label = document.getElementById('privacy-toggle-label');
-      wrap.classList.toggle('privacy-masked');
-      const isMasked = wrap.classList.contains('privacy-masked');
-      label.textContent = isMasked ? 'Tampilkan Kembali Identitas' : 'Sembunyikan Identitas Layar';
-      showToast(isMasked ? 'Mode Samarkan Identitas Layar diaktifkan.' : 'Identitas layar ditampilkan kembali.');
+      const masked = wrap.classList.toggle('privacy-masked');
+      document.getElementById('privacy-toggle-btn').setAttribute('aria-pressed', String(masked));
+      label.textContent = masked ? 'Tampilkan kembali identitas' : 'Sembunyikan identitas di layar';
+      showToast(masked ? 'Mode samar aktif. Arahkan kursor untuk mengintip.' : 'Identitas ditampilkan kembali.');
     }
-
+    let selectedMood = null;
     function selectMood(btn, moodName) {
       document.querySelectorAll('.mood-btn').forEach(b => {
-        b.className = 'mood-btn p-2.5 rounded-xl border border-selaksana-border text-xs font-medium hover:border-selaksana-plum transition';
+        b.classList.remove('border-2', 'border-selaksana-plum', 'bg-selaksana-plumLight', 'text-selaksana-plum', 'font-semibold');
+        b.classList.add('border', 'border-selaksana-border');
+        b.setAttribute('aria-pressed', 'false');
       });
-      btn.className = 'mood-btn p-2.5 rounded-xl border-2 border-selaksana-plum bg-selaksana-plumLight text-selaksana-plum text-xs font-semibold transition';
-      showToast('Suasana hati hari ini (' + moodName + ') dicatat.');
+      btn.classList.remove('border', 'border-selaksana-border');
+      btn.classList.add('border-2', 'border-selaksana-plum', 'bg-selaksana-plumLight', 'text-selaksana-plum', 'font-semibold');
+      btn.setAttribute('aria-pressed', 'true');
+      selectedMood = moodName;
     }
-
+    function renderJournalCount() {
+      const n = (Store.get('selaksana.journal', []) || []).length;
+      const el = document.getElementById('journal-count');
+      if (el) el.textContent = n ? n + ' catatan tersimpan di perangkat ini' : '';
+    }
     function saveReflectionJournal() {
-      const val = document.getElementById('reflection-note').value.trim();
-      if (!val) {
-        showToast('Silakan tuliskan catatan singkat terlebih dahulu.');
-        return;
-      }
-      document.getElementById('reflection-note').value = '';
-      showToast('Catatan refleksi mandiri berhasil disimpan secara privat.');
+      const ta = document.getElementById('reflection-note');
+      const val = ta.value.trim();
+      if (!val && !selectedMood) { showToast('Pilih suasana hati atau tulis catatan singkat dulu.'); return; }
+      const j = Store.get('selaksana.journal', []) || [];
+      j.push({ mood: selectedMood, text: val, at: new Date().toISOString() });
+      Store.set('selaksana.journal', j);
+      ta.value = '';
+      renderJournalCount();
+      showToast('Catatan refleksi tersimpan secara privat.');
     }
-
     function saveAccountSettings() {
       const newAlias = document.getElementById('input-alias-name').value.trim();
+      const wa = document.getElementById('input-alias-wa').value.trim();
+      if (wa && !validWA(wa)) { showToast('Nomor WhatsApp belum valid. Contoh: 081234567890.'); return; }
       if (newAlias) {
+        Store.set('selaksana.alias', newAlias);
         document.getElementById('portal-alias-display').textContent = newAlias;
       }
-      showToast('Pengaturan akun & nama samaran berhasil diperbarui.');
+      Store.set('selaksana.reminder', document.getElementById('input-reminder').value);
+      showToast('Pengaturan disimpan.');
     }
 
     function showToast(msg) {
       const box = document.getElementById('toast-box');
-      const txt = document.getElementById('toast-text');
-      txt.textContent = msg;
+      document.getElementById('toast-text').textContent = msg;
       box.classList.remove('hidden');
       clearTimeout(window._toastTimer);
-      window._toastTimer = setTimeout(() => {
-        box.classList.add('hidden');
-      }, 3200);
+      window._toastTimer = setTimeout(() => box.classList.add('hidden'), 3600);
     }
 
-    // Initialize on load
+    /* =====================================================================
+       DASBOR STAF: autentikasi
+       Catatan: ini autentikasi sisi-klien untuk prototipe. Untuk produksi,
+       pindahkan verifikasi kredensial dan data ke server (mis. Supabase / Firebase Auth).
+       ===================================================================== */
+    const STAFF_ACCOUNTS = [
+      { email: 'jasatenacity@gmail.com', hash: '372c7e13c0cc350be5713e4c7673aead620ce442919e25e5968e375f60b3ac41', name: 'Admin Selaksana', role: 'Koordinator biro' }
+    ];
+    const STAFF_SESSION_KEY = 'selaksana.staff.email';
+    let loginFails = 0, loginLockUntil = 0;
+
+    async function sha256Hex(text) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    function currentStaff() {
+      const email = Session.get(STAFF_SESSION_KEY);
+      return STAFF_ACCOUNTS.find(a => a.email === email) || null;
+    }
+    function showLoginError(msg) {
+      const el = document.getElementById('staff-login-error');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+    function toggleStaffPassword() {
+      const input = document.getElementById('staff-password');
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      const btn = document.getElementById('staff-pass-toggle');
+      btn.setAttribute('aria-label', show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+      btn.innerHTML = `<i data-lucide="${show ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
+      if (window.lucide) lucide.createIcons();
+    }
+    async function submitStaffLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('staff-email').value.trim().toLowerCase();
+      const pass = document.getElementById('staff-password').value;
+      const btn = document.getElementById('staff-login-btn');
+      document.getElementById('staff-login-error').classList.add('hidden');
+      if (Date.now() < loginLockUntil) {
+        return showLoginError('Terlalu banyak percobaan. Coba lagi dalam ' + Math.ceil((loginLockUntil - Date.now()) / 1000) + ' detik.');
+      }
+      if (!email || !pass) return showLoginError('Isi email dan kata sandi.');
+      if (!(window.crypto && crypto.subtle)) return showLoginError('Peramban ini tidak mendukung login aman. Buka situs lewat alamat https.');
+      btn.disabled = true;
+      btn.classList.add('opacity-70');
+      btn.firstElementChild.textContent = 'Memeriksa…';
+      let acc = null;
+      try {
+        const h = await sha256Hex(email + '|' + pass);
+        acc = STAFF_ACCOUNTS.find(a => a.email === email && a.hash === h) || null;
+      } catch (err) { /* jatuh ke gagal */ }
+      btn.disabled = false;
+      btn.classList.remove('opacity-70');
+      btn.firstElementChild.textContent = 'Masuk ke dasbor';
+      if (!acc) {
+        loginFails++;
+        if (loginFails >= 5) { loginLockUntil = Date.now() + 30000; loginFails = 0; return showLoginError('Terlalu banyak percobaan. Akses dikunci 30 detik.'); }
+        document.getElementById('staff-password').value = '';
+        document.getElementById('staff-password').focus();
+        return showLoginError('Email atau kata sandi tidak cocok. Periksa lagi dan coba ulang.');
+      }
+      loginFails = 0;
+      Session.set(STAFF_SESSION_KEY, acc.email);
+      document.getElementById('staff-password').value = '';
+      renderStaffGate();
+      showToast('Selamat datang, ' + acc.name + '.');
+    }
+    function staffLogout() {
+      Session.remove(STAFF_SESSION_KEY);
+      document.getElementById('staff-email').value = '';
+      renderStaffGate();
+      showToast('Kamu sudah keluar dari dasbor.');
+    }
+    function renderStaffGate() {
+      const acc = currentStaff();
+      document.getElementById('staff-login').classList.toggle('hidden', !!acc);
+      document.getElementById('staff-dash').classList.toggle('hidden', !acc);
+      if (acc) {
+        document.getElementById('staff-name').textContent = acc.name;
+        document.getElementById('staff-role').textContent = acc.role;
+        document.getElementById('staff-avatar').textContent = acc.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+        refreshBookings();
+        renderStaff();
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    /* =====================================================================
+       DASBOR STAF: data & logika penugasan
+       ===================================================================== */
+    const staffState = { tab: 'ringkasan', filter: 'semua', q: '', editing: new Set(), jadwalPsych: 'semua' };
+    let bookings = [];
+    function refreshBookings() { bookings = loadBookings(); }
+    function persistBookings() { saveBookings(bookings); }
+    function isActivePsych(pid) { return (Store.get(PSYCH_ACTIVE_KEY, {}) || {})[pid] !== false; }
+    function setActivePsych(pid, on) {
+      const m = Store.get(PSYCH_ACTIVE_KEY, {}) || {};
+      m[pid] = on;
+      Store.set(PSYCH_ACTIVE_KEY, m);
+    }
+    function psychLoad(pid) {
+      const t = todayISO(), end = addDays(6);
+      return bookings.filter(b => b.psychId === pid && b.status === 'dikonfirmasi' && b.sessionDate >= t && b.sessionDate <= end).length;
+    }
+    function suggestPsych(b) {
+      const active = psychologistsData.filter(p => isActivePsych(p.id));
+      if (!active.length) return null;
+      let pref = null, reason = '';
+      if (b.service === 'Konseling Pasangan & Keluarga') { pref = 'sn'; reason = 'spesialis relasi & keluarga'; }
+      else if (b.service === 'Konseling Anak & Remaja' || b.service === 'Asesmen Pribadi') { pref = 'ra'; reason = 'spesialis anak, remaja & asesmen'; }
+      else if (TOPIC_TO_PSYCH[b.topic]) { pref = TOPIC_TO_PSYCH[b.topic]; reason = 'keahlian sesuai topik'; }
+      if (pref && isActivePsych(pref) && psychLoad(pref) < WEEKLY_CAPACITY) return { id: pref, reason };
+      const lightest = active.slice().sort((a, c) => psychLoad(a.id) - psychLoad(c.id))[0];
+      return { id: lightest.id, reason: pref ? 'psikolog utama penuh atau nonaktif, beban paling ringan' : 'beban kerja paling ringan' };
+    }
+    function defaultTimeFor(b) {
+      const key = Object.keys(TIME_DEFAULTS).find(k => (b.prefTime || '').startsWith(k));
+      return key ? TIME_DEFAULTS[key] : '10:00';
+    }
+    function pendingCount() { return bookings.filter(b => b.status === 'menunggu').length; }
+
+    function assignBooking(id) {
+      const b = bookings.find(x => x.id === id);
+      if (!b) return;
+      const pid = document.getElementById('as-psych-' + id).value;
+      const date = document.getElementById('as-date-' + id).value;
+      const time = document.getElementById('as-time-' + id).value;
+      if (!pid) return showToast('Pilih psikolog yang ditugaskan.');
+      if (!date || !time) return showToast('Isi tanggal dan jam sesi.');
+      if (date < todayISO()) return showToast('Tanggal sesi sudah lewat.');
+      const h = timeToMin(time);
+      if (h < 9 * 60 || h > 20 * 60) return showToast('Jam sesi di luar operasional (09.00–20.00).');
+      const dur = (SERVICES[b.service] || { min: 60 }).min;
+      const clash = bookings.find(x => x.id !== id && x.psychId === pid && x.status === 'dikonfirmasi' && x.sessionDate === date &&
+        timeToMin(x.sessionTime) < h + dur && h < timeToMin(x.sessionTime) + (SERVICES[x.service] || { min: 60 }).min);
+      if (clash) return showToast('Bentrok: ' + psychById(pid).short + ' sudah ada sesi ' + clash.sessionTime.replace(':', '.') + ' di tanggal itu.');
+      b.psychId = pid; b.sessionDate = date; b.sessionTime = time; b.status = 'dikonfirmasi';
+      staffState.editing.delete(id);
+      persistBookings();
+      renderStaff();
+      showToast(psychById(pid).short + ' ditugaskan untuk ' + b.id + '. Kirim konfirmasi ke klien.');
+    }
+    function setBookingStatus(id, status) {
+      const b = bookings.find(x => x.id === id);
+      if (!b) return;
+      if (status === 'dibatalkan' && !window.confirm('Batalkan permintaan ' + id + '?')) return;
+      b.status = status;
+      if (status === 'menunggu') { b.psychId = null; b.sessionDate = null; b.sessionTime = null; }
+      persistBookings();
+      renderStaff();
+    }
+    function editAssignment(id) { staffState.editing.add(id); renderStaff(); }
+    function cancelEdit(id) { staffState.editing.delete(id); renderStaff(); }
+    function clientWaLink(b) {
+      const p = psychById(b.psychId);
+      const msg = `Halo ${b.alias}, terima kasih sudah menghubungi Selaksana.\nPermintaan ${b.id} sudah kami proses:\n- Psikolog: ${p.name}\n- Jadwal: ${fmtDate(b.sessionDate, true)}, ${b.sessionTime.replace(':', '.')} WIB\n- Format: ${b.mode}\n- Layanan: ${b.service}\n\nMohon balas untuk konfirmasi jadwal. Detail pembayaran kami kirim setelahnya. Informed Consent: ${CONSENT_URL}`;
+      return `https://wa.me/${waDigits(b.wa)}?text=${encodeURIComponent(msg)}`;
+    }
+    function demoWaToast() { showToast('Ini data contoh, tidak ada nomor WhatsApp asli.'); }
+    function staffTab(name) {
+      staffState.tab = name;
+      renderStaff();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function reviewRequest(id) {
+      staffState.filter = 'menunggu';
+      staffState.q = '';
+      staffTab('permintaan');
+      setTimeout(() => scrollToId('req-' + id), 80);
+    }
+    function setStaffFilter(f) { staffState.filter = f; renderRequestsPane(); if (window.lucide) lucide.createIcons(); }
+    function onStaffSearch(v) { staffState.q = v.toLowerCase(); renderRequestList(); if (window.lucide) lucide.createIcons(); }
+    function setJadwalPsych(v) { staffState.jadwalPsych = v; renderJadwalPane(); if (window.lucide) lucide.createIcons(); }
+    function toggleStaffPrivacy() {
+      const on = document.getElementById('staff-dash').classList.toggle('staff-privacy');
+      document.getElementById('staff-privacy-btn')?.setAttribute('aria-pressed', String(on));
+      const l = document.getElementById('staff-privacy-label');
+      if (l) l.textContent = on ? 'Tampilkan data klien' : 'Samarkan data klien';
+      showToast(on ? 'Data klien disamarkan. Arahkan kursor untuk mengintip.' : 'Data klien ditampilkan.');
+    }
+    function togglePsychActive(pid) {
+      setActivePsych(pid, !isActivePsych(pid));
+      renderStaff();
+      showToast(psychById(pid).short + (isActivePsych(pid) ? ' kembali menerima klien baru.' : ' tidak menerima klien baru.'));
+    }
+    function setStaffPsychActive(pid) { togglePsychActive(pid); }
+    function resetDemoData() {
+      if (!window.confirm('Setel ulang semua permintaan ke data contoh? Permintaan yang masuk dari formulir akan dihapus.')) return;
+      Store.set(BOOKINGS_KEY, seedBookings());
+      Store.remove(PSYCH_ACTIVE_KEY);
+      Store.remove(MY_BOOKING_KEY);
+      refreshBookings();
+      staffState.editing.clear();
+      renderStaff();
+      showToast('Data contoh disetel ulang.');
+    }
+
+    /* =====================================================================
+       DASBOR STAF: render
+       ===================================================================== */
+    function renderStaff() {
+      document.querySelectorAll('[data-stab]').forEach(b => b.classList.toggle('active', b.dataset.stab === staffState.tab));
+      document.querySelectorAll('.staff-pane').forEach(p => p.classList.add('hidden'));
+      document.getElementById('staff-pane-' + staffState.tab).classList.remove('hidden');
+      const n = pendingCount();
+      const badge = document.getElementById('staff-pending-badge');
+      badge.textContent = n;
+      badge.classList.toggle('hidden', n === 0);
+      renderRingkasanPane();
+      renderRequestsPane();
+      renderJadwalPane();
+      renderTimPane();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function statCard(icon, label, value, hint, accent) {
+      return `<div class="bg-white rounded-2xl border border-selaksana-border shadow-card p-5">
+        <div class="flex items-center justify-between"><span class="text-xs font-semibold text-selaksana-muted">${label}</span>
+          <span class="w-8 h-8 rounded-lg ${accent ? 'bg-selaksana-ochre/15 text-selaksana-ochre' : 'bg-selaksana-plumLight text-selaksana-plum'} flex items-center justify-center"><i data-lucide="${icon}" class="w-4 h-4"></i></span></div>
+        <p class="font-serif font-semibold text-3xl text-selaksana-ink mt-3">${value}</p>
+        <p class="text-[11px] text-selaksana-muted mt-1">${hint}</p></div>`;
+    }
+    function barRow(label, value, max, warn, hideMax) {
+      const pct = max ? Math.min(100, Math.round(value / max * 100)) : 0;
+      return `<div class="space-y-1.5"><div class="flex justify-between text-xs"><span class="text-selaksana-ink font-medium">${label}</span><span class="text-selaksana-muted">${value}${max && !hideMax ? ' / ' + max : ''}</span></div>
+        <div class="bar-track"><div class="bar-fill ${warn ? 'warn' : ''}" style="width:${pct}%"></div></div></div>`;
+    }
+    function renderRingkasanPane() {
+      const acc = currentStaff();
+      const hr = new Date().getHours();
+      const greet = hr < 11 ? 'Selamat pagi' : hr < 15 ? 'Selamat siang' : hr < 18 ? 'Selamat sore' : 'Selamat malam';
+      const t = todayISO(), wk = addDays(6);
+      const pending = bookings.filter(b => b.status === 'menunggu').sort((a, c) => a.createdAt.localeCompare(c.createdAt));
+      const upcoming = bookings.filter(b => b.status === 'dikonfirmasi' && b.sessionDate >= t);
+      const thisWeek = upcoming.filter(b => b.sessionDate <= wk);
+      const activePsy = psychologistsData.filter(p => isActivePsych(p.id)).length;
+      const done = bookings.filter(b => b.status === 'selesai').length;
+      const svcCounts = Object.keys(SERVICES).map(s => [s, bookings.filter(b => b.service === s && b.status !== 'dibatalkan').length]);
+      const svcMax = Math.max(1, ...svcCounts.map(x => x[1]));
+
+      document.getElementById('staff-pane-ringkasan').innerHTML = `
+        <div class="space-y-6">
+          <div>
+            <h1 class="font-serif font-semibold text-3xl sm:text-4xl text-selaksana-ink">${greet}, ${esc((acc?.name || 'Staf').split(' ')[0])}.</h1>
+            <p class="text-sm text-selaksana-muted mt-1.5">${pending.length
+              ? `Ada <strong class="text-selaksana-ink">${pending.length} permintaan</strong> yang menunggu penugasan psikolog.`
+              : 'Semua permintaan sudah ditugaskan. Tidak ada yang menunggu.'}</p>
+          </div>
+          <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+            ${statCard('inbox', 'Menunggu penugasan', pending.length, pending.length ? 'Tertua: ' + timeAgo(pending[0].createdAt) : 'Tidak ada antrean', pending.length > 0)}
+            ${statCard('calendar-check', 'Sesi 7 hari ke depan', thisWeek.length, upcoming.length + ' sesi terkonfirmasi total')}
+            ${statCard('circle-check', 'Sesi selesai', done, 'Tercatat di dasbor ini')}
+            ${statCard('users-round', 'Psikolog menerima klien', activePsy + ' / ' + psychologistsData.length, 'Atur di tab Tim psikolog')}
+          </div>
+          <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+            <div class="xl:col-span-3 bg-white rounded-3xl border border-selaksana-border shadow-card p-6 space-y-4">
+              <div class="flex items-center justify-between"><h2 class="font-serif font-semibold text-xl text-selaksana-ink">Perlu ditugaskan</h2>
+                <button onclick="staffState.filter='menunggu';staffTab('permintaan')" class="text-xs font-semibold text-selaksana-plum hover:underline">Lihat semua</button></div>
+              ${pending.length ? `<ul class="divide-y divide-selaksana-border/80">${pending.slice(0, 5).map(b => {
+                const s = suggestPsych(b);
+                return `<li class="py-3.5 flex items-center justify-between gap-4">
+                  <div class="min-w-0"><p class="text-sm font-semibold text-selaksana-ink truncate"><span class="sensitive-data">${esc(b.alias)}</span> <span class="font-normal text-selaksana-muted">· ${esc(b.service)}</span></p>
+                  <p class="text-[11px] text-selaksana-muted mt-0.5">${fmtDate(b.prefDate)}, ${esc(b.prefTime)} · disarankan: <strong class="text-selaksana-ink">${s ? psychById(s.id).short : '-'}</strong></p></div>
+                  <button onclick="reviewRequest('${b.id}')" class="shrink-0 px-3.5 py-2 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition">Tinjau</button></li>`;
+              }).join('')}</ul>` : `<div class="py-8 text-center text-xs text-selaksana-muted">Antrean kosong. Permintaan baru dari formulir janji temu akan muncul di sini.</div>`}
+            </div>
+            <div class="xl:col-span-2 bg-white rounded-3xl border border-selaksana-border shadow-card p-6 space-y-4">
+              <div><h2 class="font-serif font-semibold text-xl text-selaksana-ink">Beban psikolog</h2><p class="text-[11px] text-selaksana-muted">Sesi terkonfirmasi 7 hari ke depan, kapasitas ${WEEKLY_CAPACITY}/minggu</p></div>
+              ${psychologistsData.map(p => barRow(p.short + (isActivePsych(p.id) ? '' : ' (nonaktif)'), psychLoad(p.id), WEEKLY_CAPACITY, psychLoad(p.id) >= WEEKLY_CAPACITY * 0.8)).join('')}
+            </div>
+          </div>
+          <div class="bg-white rounded-3xl border border-selaksana-border shadow-card p-6 space-y-4">
+            <div><h2 class="font-serif font-semibold text-xl text-selaksana-ink">Permintaan per layanan</h2><p class="text-[11px] text-selaksana-muted">Tidak termasuk yang dibatalkan</p></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4">${svcCounts.map(([s, c]) => barRow(esc(s), c, svcMax, false, true)).join('')}</div>
+          </div>
+        </div>`;
+    }
+
+    function renderRequestsPane() {
+      const counts = { semua: bookings.length };
+      ['menunggu', 'dikonfirmasi', 'selesai', 'dibatalkan'].forEach(s => counts[s] = bookings.filter(b => b.status === s).length);
+      const chips = [['semua', 'Semua'], ['menunggu', 'Menunggu'], ['dikonfirmasi', 'Terkonfirmasi'], ['selesai', 'Selesai'], ['dibatalkan', 'Dibatalkan']];
+      document.getElementById('staff-pane-permintaan').innerHTML = `
+        <div class="space-y-5">
+          <div><h1 class="font-serif font-semibold text-3xl text-selaksana-ink">Permintaan janji temu</h1>
+            <p class="text-sm text-selaksana-muted mt-1">Tentukan psikolog untuk tiap permintaan. Klien tidak memilih sendiri.</p></div>
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div class="flex flex-wrap gap-2">${chips.map(([k, l]) => `<button onclick="setStaffFilter('${k}')" aria-pressed="${staffState.filter === k}" class="px-3.5 py-2 rounded-full text-xs font-semibold border transition ${staffState.filter === k ? 'bg-selaksana-plum text-white border-selaksana-plum' : 'bg-white text-selaksana-ink border-selaksana-border hover:border-selaksana-plum'}">${l} <span class="${staffState.filter === k ? 'text-white/80' : 'text-selaksana-muted'}">${counts[k]}</span></button>`).join('')}</div>
+            <div class="relative w-full lg:w-72"><i data-lucide="search" class="w-4 h-4 text-selaksana-muted absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <label for="staff-search" class="sr-only">Cari permintaan</label>
+              <input id="staff-search" type="search" value="${esc(staffState.q)}" oninput="onStaffSearch(this.value)" placeholder="Cari nama, nomor, atau layanan" class="w-full pl-10 pr-4 py-2.5 rounded-full bg-white border border-selaksana-border text-xs focus:outline-none focus:border-selaksana-plum" /></div>
+          </div>
+          <div id="req-list" class="space-y-4"></div>
+        </div>`;
+      renderRequestList();
+    }
+
+    function requestCard(b) {
+      const psych = psychById(b.psychId);
+      const dur = (SERVICES[b.service] || { min: 60 }).min;
+      const open = b.status === 'menunggu' || (b.status === 'dikonfirmasi' && staffState.editing.has(b.id));
+      const sug = suggestPsych(b);
+      const selected = b.psychId || (sug && sug.id) || '';
+      const panel = open ? `
+        <div class="mt-4 p-4 rounded-2xl bg-selaksana-bg border border-selaksana-border space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-[1fr_150px_110px] gap-3">
+            <div><label for="as-psych-${b.id}" class="block text-[11px] font-semibold text-selaksana-ink mb-1">Psikolog yang ditugaskan</label>
+              <select id="as-psych-${b.id}" class="w-full px-3 py-2.5 rounded-xl bg-white border border-selaksana-border text-xs focus:outline-none focus:border-selaksana-plum">
+                ${psychologistsData.map(p => `<option value="${p.id}" ${p.id === selected ? 'selected' : ''} ${!isActivePsych(p.id) && p.id !== b.psychId ? 'disabled' : ''}>${p.short} · ${psychLoad(p.id)}/${WEEKLY_CAPACITY} sesi minggu ini${sug && sug.id === p.id ? ' · disarankan' : ''}${!isActivePsych(p.id) ? ' · nonaktif' : ''}</option>`).join('')}
+              </select></div>
+            <div><label for="as-date-${b.id}" class="block text-[11px] font-semibold text-selaksana-ink mb-1">Tanggal</label>
+              <input id="as-date-${b.id}" type="date" min="${todayISO()}" value="${b.sessionDate || (b.prefDate >= todayISO() ? b.prefDate : todayISO())}" class="w-full px-3 py-2.5 rounded-xl bg-white border border-selaksana-border text-xs focus:outline-none focus:border-selaksana-plum" /></div>
+            <div><label for="as-time-${b.id}" class="block text-[11px] font-semibold text-selaksana-ink mb-1">Jam mulai</label>
+              <input id="as-time-${b.id}" type="time" min="09:00" max="20:00" step="900" value="${b.sessionTime || defaultTimeFor(b)}" class="w-full px-3 py-2.5 rounded-xl bg-white border border-selaksana-border text-xs focus:outline-none focus:border-selaksana-plum" /></div>
+          </div>
+          ${sug && b.status === 'menunggu' ? `<p class="text-[11px] text-selaksana-muted"><i data-lucide="sparkles" class="w-3 h-3 inline -mt-0.5 text-selaksana-ochre"></i> Disarankan <strong class="text-selaksana-ink">${psychById(sug.id).short}</strong>: ${sug.reason}. Durasi sesi ${dur} menit.</p>` : `<p class="text-[11px] text-selaksana-muted">Durasi sesi ${dur} menit.</p>`}
+          <div class="flex flex-wrap gap-2">
+            <button onclick="assignBooking('${b.id}')" class="px-4 py-2.5 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition">Tugaskan &amp; konfirmasi</button>
+            ${b.status === 'dikonfirmasi' ? `<button onclick="cancelEdit('${b.id}')" class="px-4 py-2.5 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">Batal ubah</button>` : ''}
+          </div>
+        </div>` : '';
+      const assigned = psych && !open ? `
+        <div class="mt-4 pt-4 border-t border-selaksana-border flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3"><div class="w-9 h-9 rounded-full bg-selaksana-plum text-white font-serif font-semibold text-xs flex items-center justify-center">${psych.initials}</div>
+            <div><p class="text-xs font-semibold text-selaksana-ink">${psych.name}</p>
+            <p class="text-[11px] text-selaksana-muted">${fmtDate(b.sessionDate, true)} · ${b.sessionTime.replace(':', '.')} WIB</p></div></div>
+          <div class="flex flex-wrap gap-2">
+            ${b.status === 'dikonfirmasi' ? `
+              ${b.demo ? `<button onclick="demoWaToast()" class="px-3.5 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum inline-flex items-center gap-1.5"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>Kirim WA</button>`
+              : `<a href="${clientWaLink(b)}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>Kirim konfirmasi WA</a>`}
+              <button onclick="editAssignment('${b.id}')" class="px-3.5 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">Ubah penugasan</button>
+              <button onclick="setBookingStatus('${b.id}','selesai')" class="px-3.5 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">Tandai selesai</button>` : ''}
+          </div></div>` : '';
+      const footerActions = b.status === 'menunggu' || b.status === 'dikonfirmasi'
+        ? `<button onclick="setBookingStatus('${b.id}','dibatalkan')" class="text-[11px] font-semibold text-rose-700 hover:underline">Batalkan</button>`
+        : b.status === 'dibatalkan' ? `<button onclick="setBookingStatus('${b.id}','menunggu')" class="text-[11px] font-semibold text-selaksana-plum hover:underline">Aktifkan kembali</button>` : '';
+      return `
+        <article id="req-${b.id}" class="bg-white rounded-3xl border border-selaksana-border shadow-card p-5 sm:p-6 scroll-mt-28">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2 text-[11px] text-selaksana-muted"><span class="font-semibold text-selaksana-ink">${b.id}</span><span>· masuk ${timeAgo(b.createdAt)}</span>${b.demo ? '<span class="px-2 py-0.5 rounded bg-selaksana-subtle">contoh</span>' : '<span class="px-2 py-0.5 rounded bg-selaksana-plumLight text-selaksana-plum font-semibold">dari formulir</span>'}</div>
+              <h3 class="font-serif font-semibold text-xl text-selaksana-ink mt-1"><span class="sensitive-data">${esc(b.alias)}</span></h3>
+            </div>
+            ${statusBadge(b.status)}
+          </div>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3 mt-4 text-xs">
+            <div><dt class="text-selaksana-muted">Layanan</dt><dd class="font-semibold text-selaksana-ink">${esc(b.service)}</dd></div>
+            <div><dt class="text-selaksana-muted">Format</dt><dd class="font-semibold text-selaksana-ink">${esc(b.mode)}</dd></div>
+            <div><dt class="text-selaksana-muted">Topik utama</dt><dd class="font-semibold text-selaksana-ink">${esc(TOPICS[b.topic] || '-')}</dd></div>
+            <div><dt class="text-selaksana-muted">Preferensi klien</dt><dd class="font-semibold text-selaksana-ink">${fmtDate(b.prefDate)}, ${esc(b.prefTime)}</dd></div>
+          </dl>
+          <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 mt-3 text-xs text-selaksana-muted">
+            <span>WhatsApp: <span class="sensitive-data text-selaksana-ink font-medium">${b.demo ? '0812-••••-' + b.id.slice(-4) : esc(b.wa)}</span></span>
+            ${b.notes ? `<span class="sensitive-data">Catatan: “${esc(b.notes)}”</span>` : ''}
+          </div>
+          ${panel}${assigned}
+          ${footerActions ? `<div class="mt-3 text-right">${footerActions}</div>` : ''}
+        </article>`;
+    }
+    function renderRequestList() {
+      const host = document.getElementById('req-list');
+      if (!host) return;
+      const rank = { menunggu: 0, dikonfirmasi: 1, selesai: 2, dibatalkan: 3 };
+      const q = staffState.q;
+      const list = bookings
+        .filter(b => staffState.filter === 'semua' || b.status === staffState.filter)
+        .filter(b => !q || [b.id, b.alias, b.service, TOPICS[b.topic], b.mode].join(' ').toLowerCase().includes(q))
+        .sort((a, c) => rank[a.status] - rank[c.status] || (a.status === 'menunggu' ? a.createdAt.localeCompare(c.createdAt) : (c.sessionDate || '').localeCompare(a.sessionDate || '')));
+      host.innerHTML = list.length ? list.map(requestCard).join('') : `
+        <div class="bg-white rounded-3xl border border-selaksana-border p-10 text-center space-y-1.5">
+          <p class="font-serif font-semibold text-xl text-selaksana-ink">${q ? 'Tidak ada permintaan yang cocok' : 'Belum ada permintaan di kategori ini'}</p>
+          <p class="text-xs text-selaksana-muted">${q ? 'Coba kata kunci lain atau ubah filter status.' : 'Permintaan baru dari formulir janji temu akan muncul di sini.'}</p></div>`;
+    }
+
+    function renderJadwalPane() {
+      const t = todayISO();
+      const f = staffState.jadwalPsych;
+      const mine = b => f === 'semua' || b.psychId === f;
+      const upcoming = bookings.filter(b => b.status === 'dikonfirmasi' && b.sessionDate >= t && mine(b))
+        .sort((a, c) => (a.sessionDate + a.sessionTime).localeCompare(c.sessionDate + c.sessionTime));
+      const recent = bookings.filter(b => b.status === 'selesai' && mine(b))
+        .sort((a, c) => c.sessionDate.localeCompare(a.sessionDate)).slice(0, 5);
+      const groups = {};
+      upcoming.forEach(b => (groups[b.sessionDate] = groups[b.sessionDate] || []).push(b));
+      const row = b => {
+        const p = psychById(b.psychId), dur = (SERVICES[b.service] || { min: 60 }).min;
+        const end = timeToMin(b.sessionTime) + dur;
+        return `<li class="py-3.5 flex items-center gap-4">
+          <div class="w-24 shrink-0 text-xs"><p class="font-semibold text-selaksana-ink">${b.sessionTime.replace(':', '.')}–${pad2(Math.floor(end / 60))}.${pad2(end % 60)}</p><p class="text-selaksana-muted">${dur} menit</p></div>
+          <div class="min-w-0 flex-1"><p class="text-sm font-semibold text-selaksana-ink truncate"><span class="sensitive-data">${esc(b.alias)}</span> <span class="font-normal text-selaksana-muted">· ${esc(b.service)}</span></p><p class="text-[11px] text-selaksana-muted truncate">${esc(b.mode)}</p></div>
+          <span class="shrink-0 inline-flex items-center gap-2 text-xs text-selaksana-ink"><span class="w-7 h-7 rounded-full bg-selaksana-plum text-white font-serif font-semibold text-[10px] flex items-center justify-center">${p.initials}</span><span class="hidden sm:inline">${p.short}</span></span></li>`;
+      };
+      document.getElementById('staff-pane-jadwal').innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+            <div><h1 class="font-serif font-semibold text-3xl text-selaksana-ink">Jadwal sesi</h1><p class="text-sm text-selaksana-muted mt-1">Sesi terkonfirmasi, urut tanggal.</p></div>
+            <div><label for="jadwal-filter" class="sr-only">Filter psikolog</label>
+              <select id="jadwal-filter" onchange="setJadwalPsych(this.value)" class="px-4 py-2.5 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink focus:outline-none focus:border-selaksana-plum">
+                <option value="semua" ${f === 'semua' ? 'selected' : ''}>Semua psikolog</option>
+                ${psychologistsData.map(p => `<option value="${p.id}" ${f === p.id ? 'selected' : ''}>${p.short}</option>`).join('')}
+              </select></div>
+          </div>
+          ${Object.keys(groups).length ? Object.keys(groups).map(d => `
+            <section class="bg-white rounded-3xl border border-selaksana-border shadow-card p-5 sm:p-6">
+              <h2 class="font-serif font-semibold text-lg text-selaksana-ink">${fmtDate(d, true)}${d === t ? ' <span class="ml-2 align-middle px-2 py-0.5 rounded-full bg-selaksana-ochre/15 text-selaksana-ochre text-[11px] font-sans font-semibold">Hari ini</span>' : ''}</h2>
+              <ul class="divide-y divide-selaksana-border/80 mt-2">${groups[d].map(row).join('')}</ul></section>`).join('')
+          : `<div class="bg-white rounded-3xl border border-selaksana-border p-10 text-center space-y-1.5"><p class="font-serif font-semibold text-xl text-selaksana-ink">Belum ada sesi terkonfirmasi</p><p class="text-xs text-selaksana-muted">Tugaskan psikolog di tab Permintaan, sesinya akan muncul di sini.</p></div>`}
+          ${recent.length ? `<section class="bg-white rounded-3xl border border-selaksana-border shadow-card p-5 sm:p-6"><h2 class="font-serif font-semibold text-lg text-selaksana-ink">Selesai baru-baru ini</h2>
+            <ul class="divide-y divide-selaksana-border/80 mt-2">${recent.map(b => `<li class="py-3 flex items-center justify-between gap-3 text-xs"><span class="min-w-0 truncate"><span class="sensitive-data font-semibold text-selaksana-ink">${esc(b.alias)}</span> <span class="text-selaksana-muted">· ${esc(b.service)}</span></span><span class="shrink-0 text-selaksana-muted">${fmtDate(b.sessionDate)} · ${psychById(b.psychId).short}</span></li>`).join('')}</ul></section>` : ''}
+        </div>`;
+    }
+
+    function renderTimPane() {
+      document.getElementById('staff-pane-tim').innerHTML = `
+        <div class="space-y-6">
+          <div><h1 class="font-serif font-semibold text-3xl text-selaksana-ink">Tim psikolog</h1>
+            <p class="text-sm text-selaksana-muted mt-1">Matikan "menerima klien baru" untuk mengeluarkan psikolog dari saran penugasan, misalnya saat cuti atau kapasitas penuh.</p></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">${psychologistsData.map(p => {
+            const on = isActivePsych(p.id), load = psychLoad(p.id);
+            const handled = bookings.filter(b => b.psychId === p.id && (b.status === 'selesai' || b.status === 'dikonfirmasi')).length;
+            return `<div class="bg-white rounded-3xl border border-selaksana-border shadow-card p-6 space-y-4 ${on ? '' : 'opacity-75'}">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3.5"><div class="w-12 h-12 rounded-full bg-selaksana-plum text-white font-serif font-bold flex items-center justify-center shrink-0">${p.initials}</div>
+                  <div><h3 class="font-serif font-semibold text-lg text-selaksana-ink leading-snug">${p.name}</h3><p class="text-xs text-selaksana-plum font-medium">${p.sipp} · STR aktif</p></div></div>
+              </div>
+              <div class="flex flex-wrap gap-1.5">${p.tags.map(t => `<span class="px-2.5 py-1 rounded-full bg-selaksana-bg border border-selaksana-border text-[11px] font-medium text-selaksana-ink">${t}</span>`).join('')}</div>
+              <p class="text-xs text-selaksana-muted"><span class="font-semibold text-selaksana-ink">Pendekatan:</span> ${p.approach}</p>
+              ${barRow('Beban 7 hari ke depan', load, WEEKLY_CAPACITY, load >= WEEKLY_CAPACITY * 0.8)}
+              <div class="flex items-center justify-between pt-3 border-t border-selaksana-border">
+                <span class="text-[11px] text-selaksana-muted">${handled} sesi tercatat</span>
+                <label class="flex items-center gap-2.5 text-xs font-semibold text-selaksana-ink cursor-pointer">Menerima klien baru
+                  <button type="button" role="switch" aria-checked="${on}" aria-label="Menerima klien baru: ${p.short}" onclick="togglePsychActive('${p.id}')" class="switch"></button></label>
+              </div></div>`;
+          }).join('')}</div>
+        </div>`;
+    }
+
+    /* =====================================================================
+       INISIALISASI
+       ===================================================================== */
+    window.addEventListener('storage', e => {
+      if (e.key !== BOOKINGS_KEY) return;
+      const dash = document.getElementById('staff-dash');
+      if (dash && !dash.classList.contains('hidden')) {
+        refreshBookings();
+        renderStaff();
+        showToast('Data permintaan diperbarui dari tab lain.');
+      }
+    });
     window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('[data-year]').forEach(el => el.textContent = new Date().getFullYear());
       renderBerandaPsychologists();
       renderCatalogPsychologists();
+      switchPage(pageFromHash(), { fromHash: true });
       if (window.lucide) lucide.createIcons();
     });
   </script>
