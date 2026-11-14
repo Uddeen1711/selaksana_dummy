@@ -1868,9 +1868,20 @@
   <!-- =====================================================================
        APPLICATION DATA & INTERACTIVE CONTROLLERS
        ===================================================================== -->
+<!-- =====================================================================
+       SUPABASE SDK & FULL-STACK INTERACTIVE CONTROLLERS
+       ===================================================================== -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     /* =====================================================================
-       UTIL: penyimpanan aman (localStorage dengan cadangan memori), escape, tanggal
+       1. KONFIGURASI SUPABASE PROYEK SELAKSANA
+       ===================================================================== */
+    const SUPABASE_URL = 'https://uxqhplbamygjopveifep.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_zOLYIBO9nLPX6E21bMzcgg_2MpYaTqu';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    /* =====================================================================
+       2. UTILITAS UMUM & FORMAT TANGGAL
        ===================================================================== */
     const _mem = {};
     const Store = {
@@ -1878,22 +1889,17 @@
         try {
           const raw = localStorage.getItem(key);
           if (raw !== null) return JSON.parse(raw);
-        } catch (e) { /* abaikan */ }
+        } catch (e) {}
         return (key in _mem) ? _mem[key] : fallback;
       },
       set(key, val) {
         _mem[key] = val;
-        try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* abaikan */ }
+        try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
       },
       remove(key) {
         delete _mem[key];
-        try { localStorage.removeItem(key); } catch (e) { /* abaikan */ }
+        try { localStorage.removeItem(key); } catch (e) {}
       }
-    };
-    const Session = {
-      get(key) { try { return sessionStorage.getItem(key); } catch (e) { return _mem['s:' + key] || null; } },
-      set(key, v) { _mem['s:' + key] = v; try { sessionStorage.setItem(key, v); } catch (e) { /* abaikan */ } },
-      remove(key) { delete _mem['s:' + key]; try { sessionStorage.removeItem(key); } catch (e) { /* abaikan */ } }
     };
 
     function esc(s) {
@@ -1903,36 +1909,46 @@
     function toISO(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
     function addDays(n) { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + n); return toISO(d); }
     function todayISO() { return addDays(0); }
-    function parseISO(iso) { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d, 12); }
+    function parseISO(iso) { const [y, m, d] = String(iso).split('-').map(Number); return new Date(y, m - 1, d, 12); }
     function fmtDate(iso, long) {
       if (!iso) return '-';
       return new Intl.DateTimeFormat('id-ID', long
         ? { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }
         : { weekday: 'short', day: 'numeric', month: 'short' }).format(parseISO(iso));
     }
-    function fmtTime(t) { return t ? t.replace(':', '.') + ' WIB' : '-'; }
     function timeAgo(iso) {
+      if (!iso) return 'baru saja';
       const mins = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
       if (mins < 60) return mins + ' menit lalu';
       const h = Math.round(mins / 60);
       if (h < 24) return h + ' jam lalu';
       return Math.round(h / 24) + ' hari lalu';
     }
-    function timeToMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+    function timeToMin(t) {
+      if (!t) return 0;
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    }
     function nextWorkingDay(offset) {
       let n = offset;
       while (parseISO(addDays(n)).getDay() === 0) n++;
       return addDays(n);
     }
+    function waDigits(raw) {
+      let d = String(raw || '').replace(/\D/g, '');
+      if (d.startsWith('0')) d = '62' + d.slice(1);
+      return d;
+    }
+    function validWA(raw) { return /^628\d{8,11}$/.test(waDigits(raw)); }
 
     /* =====================================================================
-       DATA: tim psikolog, layanan, topik
+       3. DATA MASTER PSIKOLOG & LAYANAN
        ===================================================================== */
     const psychologistsData = [
-      { id: 'nr', domId: 'card-nr', topicKey: 'kecemasan', initials: 'NR', name: 'Nuury Rahmadini Sawitry, S.Psi., Psikolog', short: 'Nuury R.', role: 'Sarjana Psikologi Profesi · Koordinator Biro', sipp: 'SIPP: 2023-01187', education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)', tags: ['Kecemasan & depresi', 'Regulasi emosi', 'Dewasa muda'], approach: 'Cognitive Behavioral Therapy (CBT) & Acceptance Commitment Therapy (ACT)', modes: 'Online & Tatap Muka' },
-      { id: 'ap', domId: 'card-ap', topicKey: 'stres', initials: 'AP', name: 'Adhitya Pramudya Wardani, S.Psi., Psikolog', short: 'Adhitya P.', role: 'Sarjana Psikologi Profesi', sipp: 'SIPP: 2022-00841', education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)', tags: ['Stres kerja & burnout', 'Keluarga & pasangan', 'Konseling individu'], approach: 'Systemic Therapy & Solution-Focused Brief Therapy', modes: 'Online & Tatap Muka' },
-      { id: 'sn', domId: 'card-sn', topicKey: 'relasi', initials: 'SN', name: 'Salma Nur Fadhilah, S.Psi., Psikolog', short: 'Salma N.', role: 'Sarjana Psikologi Profesi', sipp: 'SIPP: 2024-01302', education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)', tags: ['Relasi pasangan', 'Pranikah', 'Keluarga & pengasuhan'], approach: 'Emotionally Focused Therapy (EFT) & Narrative Therapy', modes: 'Online & Tatap Muka' },
-      { id: 'ra', domId: 'card-ra', topicKey: 'remaja', initials: 'RA', name: 'Rezky Ananda Putri, S.Psi., Psikolog', short: 'Rezky A.', role: 'Sarjana Psikologi Profesi', sipp: 'SIPP: 2023-00996', education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)', tags: ['Anak & remaja', 'Asesmen minat bakat', 'Karier & asesmen kerja'], approach: 'Developmental Assessment & Mindfulness-Based Cognitive Therapy', modes: 'Online & Tatap Muka' }
+      { id: 'nr', domId: 'card-nr', topicKey: 'kecemasan', initials: 'NR', name: 'Nuury Rahmadini Sawitry, S.Psi., Psikolog', short: 'Nuury R.', role: 'Sarjana Psikologi Profesi · Koordinator Biro', sipp: 'SIPP: 2023-01187', education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)', tags: ['Kecemasan & depresi', 'Regulasi emosi', 'Dewasa muda'], approach: 'Cognitive Behavioral Therapy (CBT) & Acceptance Commitment Therapy (ACT)', modes: 'Online & Tatap Muka', is_active: true },
+      { id: 'ap', domId: 'card-ap', topicKey: 'stres', initials: 'AP', name: 'Adhitya Pramudya Wardani, S.Psi., Psikolog', short: 'Adhitya P.', role: 'Sarjana Psikologi Profesi', sipp: 'SIPP: 2022-00841', education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)', tags: ['Stres kerja & burnout', 'Keluarga & pasangan', 'Konseling individu'], approach: 'Systemic Therapy & Solution-Focused Brief Therapy', modes: 'Online & Tatap Muka', is_active: true },
+      { id: 'sn', domId: 'card-sn', topicKey: 'relasi', initials: 'SN', name: 'Salma Nur Fadhilah, S.Psi., Psikolog', short: 'Salma N.', role: 'Sarjana Psikologi Profesi', sipp: 'SIPP: 2024-01302', education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)', tags: ['Relasi pasangan', 'Pranikah', 'Keluarga & pengasuhan'], approach: 'Emotionally Focused Therapy (EFT) & Narrative Therapy', modes: 'Online & Tatap Muka', is_active: true },
+      { id: 'ra', domId: 'card-ra', topicKey: 'remaja', initials: 'RA', name: 'Rezky Ananda Putri, S.Psi., Psikolog', short: 'Rezky A.', role: 'Sarjana Psikologi Profesi', sipp: 'SIPP: 2023-00996', education: 'Sarjana Psikologi Profesi (S.Psi., Psikolog)', tags: ['Anak & remaja', 'Asesmen minat bakat', 'Karier & asesmen kerja'], approach: 'Developmental Assessment & Mindfulness-Based Cognitive Therapy', modes: 'Online & Tatap Muka', is_active: true }
     ];
     const WEEKLY_CAPACITY = 10;
     const TOPICS = { kecemasan: 'Kecemasan & depresi', stres: 'Stres kerja & kelelahan', relasi: 'Relasi pasangan & keluarga', remaja: 'Tumbuh kembang anak & remaja', lainnya: 'Belum yakin / lainnya' };
@@ -1953,8 +1969,57 @@
     const CONSENT_URL = 'https://forms.gle/rvYimyTyfMbo6yaDA';
     const psychById = id => psychologistsData.find(p => p.id === id);
 
+    // State Sesi Pengguna & Data
+    let currentUser = null;
+    let currentProfile = null;
+    let clientBookings = [];
+    let clientJournals = [];
+    let bookings = [];
+
+    function rowToBooking(r) {
+      return {
+        id: r.id,
+        clientId: r.client_id,
+        createdAt: r.created_at,
+        alias: r.alias,
+        wa: r.wa,
+        service: r.service,
+        mode: r.mode,
+        topic: r.topic,
+        prefDate: r.pref_date,
+        prefTime: r.pref_time,
+        notes: r.notes || '',
+        psychId: r.psych_id || null,
+        sessionDate: r.session_date || null,
+        sessionTime: r.session_time || null,
+        status: r.status || 'menunggu',
+        demo: false
+      };
+    }
+
+    async function syncPsychologistsFromDB() {
+      const { data, error } = await sb.from('psychologists').select('id, is_active');
+      if (!error && Array.isArray(data)) {
+        data.forEach(row => {
+          const p = psychById(row.id);
+          if (p) p.is_active = row.is_active;
+        });
+      }
+    }
+
+    async function loadCurrentSession() {
+      const { data: { session } } = await sb.auth.getSession();
+      currentUser = session?.user || null;
+      if (currentUser) {
+        const { data: prof } = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+        currentProfile = prof || { id: currentUser.id, email: currentUser.email, alias: currentUser.email.split('@')[0], role: 'client' };
+      } else {
+        currentProfile = null;
+      }
+    }
+
     /* =====================================================================
-       RENDER: kartu psikolog (beranda + katalog). Klien TIDAK memilih psikolog.
+       4. RENDER KARTU PSIKOLOG (BERANDA & KATALOG)
        ===================================================================== */
     function renderBerandaPsychologists() {
       const container = document.getElementById('beranda-psychologists-grid');
@@ -1995,7 +2060,7 @@
       if (!filtered.length) {
         grid.innerHTML = `<div class="md:col-span-2 bg-white rounded-3xl border border-selaksana-border p-10 text-center space-y-2">
           <p class="font-serif font-semibold text-xl text-selaksana-ink">Tidak ada psikolog yang cocok dengan pencarian itu</p>
-          <p class="text-xs text-selaksana-muted">Coba kata kunci lain, misalnya "kecemasan", "pranikah", atau "asesmen". Atau ajukan janji temu dan biro akan memilihkan.</p>
+          <p class="text-xs text-selaksana-muted">Coba kata kunci lain, misalnya "kecemasan", "pranikah", atau "asesmen".</p>
         </div>`;
         return;
       }
@@ -2029,14 +2094,14 @@
     }
 
     /* =====================================================================
-       NAVIGASI (routing berbasis hash agar tombol kembali browser berfungsi)
+       5. NAVIGASI MULTI-HALAMAN & MODAL
        ===================================================================== */
     const PAGES = ['beranda', 'tentang', 'layanan', 'psikolog', 'biaya', 'edukasi', 'kontak', 'portal', 'staf'];
     function pageFromHash() {
       const h = (location.hash || '').replace('#', '');
       return PAGES.includes(h) ? h : 'beranda';
     }
-    function switchPage(pageId, opts) {
+    async function switchPage(pageId, opts) {
       opts = opts || {};
       if (!PAGES.includes(pageId)) pageId = 'beranda';
       document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
@@ -2045,10 +2110,10 @@
         btn.classList.toggle('nav-link-active', btn.getAttribute('data-nav') === pageId);
       });
       if (!opts.fromHash && location.hash !== '#' + pageId) {
-        try { history.pushState(null, '', '#' + pageId); } catch (e) { /* abaikan */ }
+        try { history.pushState(null, '', '#' + pageId); } catch (e) {}
       }
-      if (pageId === 'portal') renderClientPortal();
-      if (pageId === 'staf') renderStaffGate();
+      if (pageId === 'portal') await renderClientPortal();
+      if (pageId === 'staf') await renderStaffGate();
       document.title = pageId === 'staf' ? 'Dasbor Staf — Selaksana' : 'Selaksana — Biro Konsultasi Psikologi | Asesmen Pribadi, Psikoedukasi & Konseling';
       window.scrollTo({ top: 0, behavior: opts.fromHash ? 'auto' : 'smooth' });
       if (window.lucide) lucide.createIcons();
@@ -2064,9 +2129,6 @@
       if (menu) menu.classList.toggle('hidden');
     }
 
-    /* =====================================================================
-       MODAL: helper umum (Esc untuk menutup, fokus kembali ke pemicu)
-       ===================================================================== */
     let _lastFocus = null;
     function showModal(id) {
       _lastFocus = document.activeElement;
@@ -2078,7 +2140,7 @@
     }
     function hideModal(id) {
       document.getElementById(id).classList.add('hidden');
-      if (_lastFocus && document.body.contains(_lastFocus)) { try { _lastFocus.focus({ preventScroll: true }); } catch (e) { /* abaikan */ } }
+      if (_lastFocus && document.body.contains(_lastFocus)) { try { _lastFocus.focus({ preventScroll: true }); } catch (e) {} }
     }
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
@@ -2089,7 +2151,7 @@
     });
 
     /* =====================================================================
-       DETAIL LAYANAN
+       6. DETAIL LAYANAN, FILTER TOPIK & SIMULASI BIAYA
        ===================================================================== */
     const serviceDetailsCatalog = {
       'asesmen': { badge: 'Pilar 1 · Asesmen Pribadi', title: 'Asesmen Pribadi & Psikotes Resmi', desc: 'Evaluasi psikologis terstandar mencakup pemetaan minat bakat, tes IQ, kesiapan sekolah, dan asesmen klinis disertai laporan tertulis PDF resmi ber-SIPP serta sesi penjelasan hasil.', duration: '60 – 120 menit (termasuk umpan balik)', format: 'Online terawasi & tatap muka (Ruang Asoka Bandung)', cost: 'Mulai Rp450.000 (termasuk laporan PDF)', bookingValue: 'Asesmen Pribadi' },
@@ -2116,9 +2178,6 @@
       openBookingModal(activeServiceForBooking);
     }
 
-    /* =====================================================================
-       TOPIK BANTUAN (beranda): menyorot keahlian tim, bukan memilih psikolog
-       ===================================================================== */
     let currentTopic = 'kecemasan';
     let currentRecommendedService = 'Konseling Individu';
     const TOPIC_INFO = {
@@ -2169,9 +2228,6 @@
       openBookingModal(currentRecommendedService, { topic: currentTopic });
     }
 
-    /* =====================================================================
-       BIAYA: pengalih durasi
-       ===================================================================== */
     function setDurationRate(minutes) {
       const on = 'px-4 py-2 rounded-full text-xs font-semibold bg-selaksana-plum text-white transition';
       const off = 'px-4 py-2 rounded-full text-xs font-semibold text-selaksana-ink hover:text-selaksana-plum transition';
@@ -2185,53 +2241,16 @@
     }
 
     /* =====================================================================
-       DATA PERMINTAAN JANJI TEMU (dibagikan antara formulir klien & dasbor staf)
+       7. FORMULIR JANJI TEMU (TERHUBUNG KE TABEL BOOKINGS SUPABASE)
        ===================================================================== */
-    const BOOKINGS_KEY = 'selaksana.bookings.v1';
-    const MY_BOOKING_KEY = 'selaksana.myBooking';
-    const PSYCH_ACTIVE_KEY = 'selaksana.psychActive';
+    const LAST_LOCAL_BOOKING_KEY = 'selaksana.lastBookingCache';
 
-    function seedBookings() {
-      const ago = h => new Date(Date.now() - h * 3600 * 1000).toISOString();
-      const row = (n, o) => Object.assign({ id: 'REQ-' + String(100 + n).padStart(4, '0'), demo: true, wa: '', notes: '', psychId: null, sessionDate: null, sessionTime: null, status: 'menunggu' }, o);
-      return [
-        row(1, { createdAt: ago(2), alias: 'Dinda A.', service: 'Konseling Individu', mode: 'Online (Video Call)', topic: 'kecemasan', prefDate: nextWorkingDay(1), prefTime: 'Sore (15.00–18.00)', notes: 'Pertama kali konseling.' }),
-        row(2, { createdAt: ago(5), alias: 'Rafi & Salsa', service: 'Konseling Pasangan & Keluarga', mode: 'Tatap Muka di Ruang Asoka Bandung', topic: 'relasi', prefDate: nextWorkingDay(2), prefTime: 'Pagi (09.00–12.00)', notes: 'Persiapan pranikah, rencana menikah awal tahun.' }),
-        row(3, { createdAt: ago(9), alias: 'Ibu Tari (anak 9 th)', service: 'Konseling Anak & Remaja', mode: 'Online (Video Call)', topic: 'remaja', prefDate: nextWorkingDay(3), prefTime: 'Siang (12.00–15.00)', notes: 'Anak sulit fokus di sekolah.' }),
-        row(4, { createdAt: ago(20), alias: 'Kevin S.', service: 'Asesmen Pribadi', mode: 'Tatap Muka di Ruang Asoka Bandung', topic: 'lainnya', prefDate: nextWorkingDay(4), prefTime: 'Pagi (09.00–12.00)', notes: 'Butuh asesmen minat bakat untuk pindah karier.' }),
-        row(5, { createdAt: ago(30), alias: 'Bagas P.', service: 'Konseling Individu', mode: 'Online (Video Call)', topic: 'stres', prefDate: nextWorkingDay(1), prefTime: 'Siang (12.00–15.00)', psychId: 'ap', sessionDate: nextWorkingDay(1), sessionTime: '14:00', status: 'dikonfirmasi' }),
-        row(6, { createdAt: ago(40), alias: 'Maya R.', service: 'Konseling Individu', mode: 'Online (Video Call)', topic: 'kecemasan', prefDate: nextWorkingDay(2), prefTime: 'Pagi (09.00–12.00)', psychId: 'nr', sessionDate: nextWorkingDay(2), sessionTime: '10:30', status: 'dikonfirmasi' }),
-        row(7, { createdAt: ago(52), alias: 'Nadia & Reza', service: 'Konseling Pasangan & Keluarga', mode: 'Online (Video Call)', topic: 'relasi', prefDate: nextWorkingDay(3), prefTime: 'Malam (18.00–20.00)', psychId: 'sn', sessionDate: nextWorkingDay(3), sessionTime: '18:30', status: 'dikonfirmasi' }),
-        row(8, { createdAt: ago(100), alias: 'Anisa W.', service: 'Konseling Individu', mode: 'Online (Voice Call Tanpa Kamera)', topic: 'kecemasan', prefDate: addDays(-3), prefTime: 'Sore (15.00–18.00)', psychId: 'nr', sessionDate: addDays(-3), sessionTime: '16:00', status: 'selesai' }),
-        row(9, { createdAt: ago(130), alias: 'Ibu Wulan (anak 14 th)', service: 'Asesmen Pribadi', mode: 'Tatap Muka di Ruang Asoka Bandung', topic: 'remaja', prefDate: addDays(-5), prefTime: 'Pagi (09.00–12.00)', psychId: 'ra', sessionDate: addDays(-5), sessionTime: '09:00', status: 'selesai' }),
-        row(10, { createdAt: ago(75), alias: 'Yoga T.', service: 'Konseling Individu', mode: 'Online (Chat Terjadwal)', topic: 'stres', prefDate: addDays(-1), prefTime: 'Malam (18.00–20.00)', status: 'dibatalkan' })
-      ];
-    }
-    function loadBookings() {
-      let list = Store.get(BOOKINGS_KEY, null);
-      if (!Array.isArray(list)) { list = seedBookings(); Store.set(BOOKINGS_KEY, list); }
-      return list;
-    }
-    function saveBookings(list) { Store.set(BOOKINGS_KEY, list); }
-    function nextBookingId(list) {
-      const max = list.reduce((m, b) => Math.max(m, parseInt(String(b.id).replace(/\D/g, ''), 10) || 0), 100);
-      return 'REQ-' + String(max + 1).padStart(4, '0');
-    }
-    function waDigits(raw) {
-      let d = String(raw || '').replace(/\D/g, '');
-      if (d.startsWith('0')) d = '62' + d.slice(1);
-      return d;
-    }
-    function validWA(raw) { return /^628\d{8,11}$/.test(waDigits(raw)); }
-
-    /* =====================================================================
-       FORMULIR JANJI TEMU (klien tidak memilih psikolog)
-       ===================================================================== */
     function updateEstimatedFee() {
       const svc = document.getElementById('book-service')?.value || '';
       const feeEl = document.getElementById('estimated-fee');
       if (feeEl) feeEl.textContent = (SERVICES[svc] || SERVICES['Konseling Individu']).fee;
     }
+
     function openBookingModal(preset, opts) {
       opts = opts || {};
       document.getElementById('booking-form-view').classList.remove('hidden');
@@ -2244,6 +2263,15 @@
       if (p) { sEl.value = p.service; mEl.value = p.mode; }
       else if (preset && SERVICES[preset]) { sEl.value = preset; }
       if (opts.topic && TOPICS[opts.topic]) tEl.value = opts.topic;
+
+      // Isi otomatis nama samaran & WA jika klien sedang login
+      if (currentProfile) {
+        const nameInput = document.getElementById('book-name');
+        const waInput = document.getElementById('book-wa');
+        if (nameInput && !nameInput.value && currentProfile.alias) nameInput.value = currentProfile.alias;
+        if (waInput && !waInput.value && currentProfile.wa_number) waInput.value = currentProfile.wa_number;
+      }
+
       const dEl = document.getElementById('book-date');
       dEl.min = addDays(1);
       if (!dEl.value || dEl.value < dEl.min) dEl.value = nextWorkingDay(2);
@@ -2257,7 +2285,8 @@
       el.textContent = msg;
       el.classList.remove('hidden');
     }
-    function submitBookingForm(e) {
+
+    async function submitBookingForm(e) {
       e.preventDefault();
       const name = document.getElementById('book-name').value.trim();
       const wa = document.getElementById('book-wa').value.trim();
@@ -2267,20 +2296,45 @@
       const prefDate = document.getElementById('book-date').value;
       const prefTime = document.getElementById('book-time').value;
       const notes = document.getElementById('book-notes').value.trim();
+
       if (!name) return showBookingError('Isi nama panggilan atau samaran. Tidak perlu nama lengkap.');
       if (!validWA(wa)) return showBookingError('Nomor WhatsApp belum valid. Contoh: 081234567890.');
       if (!prefDate || prefDate < addDays(1)) return showBookingError('Pilih tanggal mulai besok atau setelahnya.');
       if (!document.getElementById('book-consent').checked) return showBookingError('Centang persetujuan kerahasiaan dan Informed Consent untuk melanjutkan.');
 
-      const list = loadBookings();
-      const booking = { id: nextBookingId(list), demo: false, createdAt: new Date().toISOString(), alias: name, wa, service, mode, topic, prefDate, prefTime, notes, psychId: null, sessionDate: null, sessionTime: null, status: 'menunggu' };
-      list.push(booking);
-      saveBookings(list);
-      Store.set(MY_BOOKING_KEY, booking.id);
-      Store.set('selaksana.alias', name);
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const origHtml = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Mengirim ke sistem...</span>';
 
-      const waText = `Halo Admin Selaksana,\nSaya (${name}) mengajukan janji temu dengan nomor ${booking.id}:\n- Layanan: ${service}\n- Format: ${mode}\n- Topik utama: ${TOPICS[topic]}\n- Preferensi jadwal: ${fmtDate(prefDate, true)}, ${prefTime}\n${notes ? '- Catatan: ' + notes + '\n' : ''}- Psikolog: mohon ditentukan oleh biro\n- Informed Consent: ${CONSENT_URL}\n\nMohon konfirmasi psikolog dan jadwalnya. Terima kasih.`;
-      document.getElementById('success-id').textContent = booking.id;
+      const bookingId = 'REQ-' + String(Math.floor(100000 + Math.random() * 900000));
+      const payload = {
+        id: bookingId,
+        client_id: currentUser ? currentUser.id : null,
+        alias: name,
+        wa: wa,
+        service: service,
+        mode: mode,
+        topic: topic,
+        pref_date: prefDate,
+        pref_time: prefTime,
+        notes: notes,
+        status: 'menunggu'
+      };
+
+      const { error } = await sb.from('bookings').insert(payload);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = origHtml;
+
+      if (error) {
+        return showBookingError('Gagal mengirim ke database: ' + error.message);
+      }
+
+      // Simpan cache lokal agar pengguna tetap melihat ringkasannya
+      Store.set(LAST_LOCAL_BOOKING_KEY, rowToBooking({ ...payload, created_at: new Date().toISOString() }));
+
+      const waText = `Halo Admin Selaksana,\nSaya (${name}) mengajukan janji temu dengan nomor ${bookingId}:\n- Layanan: ${service}\n- Format: ${mode}\n- Topik utama: ${TOPICS[topic]}\n- Preferensi jadwal: ${fmtDate(prefDate, true)}, ${prefTime}\n${notes ? '- Catatan: ' + notes + '\n' : ''}- Psikolog: mohon ditentukan oleh biro\n- Informed Consent: ${CONSENT_URL}\n\nMohon konfirmasi psikolog dan jadwalnya. Terima kasih.`;
+      document.getElementById('success-id').textContent = bookingId;
       document.getElementById('success-wa-link').href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waText)}`;
       document.getElementById('booking-form-view').classList.add('hidden');
       document.getElementById('booking-success-view').classList.remove('hidden');
@@ -2289,7 +2343,7 @@
     }
 
     /* =====================================================================
-       MODAL KONTEN: Informed Consent, kebijakan, syarat, artikel
+       8. MODAL KONTEN EDUKASI & LEGAL
        ===================================================================== */
     const CONTENT = {
       consent: { badge: 'Dokumen etika & persetujuan klien', title: 'Informed Consent Layanan Psikologi Selaksana', cta: true, html: `
@@ -2301,44 +2355,31 @@
       privasi: { badge: 'Legal & etika', title: 'Kebijakan Privasi & Perlindungan Data Klien', html: `
         <p><strong class="text-selaksana-ink">Data yang kami kumpulkan.</strong> Nama panggilan atau samaran, nomor WhatsApp, jenis layanan, topik utama, dan preferensi jadwal. Detail cerita dibahas langsung bersama psikolog, bukan lewat formulir.</p>
         <p><strong class="text-selaksana-ink">Cara kami memakainya.</strong> Hanya untuk mencocokkan psikolog, mengatur jadwal, dan mengirim pengingat sesi.</p>
-        <p><strong class="text-selaksana-ink">Siapa yang bisa melihat.</strong> Staf biro yang bertugas dan psikolog yang menangani sesi. Data tidak dibagikan ke pihak ketiga tanpa persetujuan tertulis.</p>
-        <p><strong class="text-selaksana-ink">Hak klien.</strong> Klien dapat meminta salinan, koreksi, atau penghapusan data non-rekam medis lewat resepsionis di WhatsApp +62 851-6138-2920 atau di.selaksana@gmail.com.</p>
-        <p class="text-[11px]">Catatan: situs ini menyimpan data formulir di peramban perangkatmu untuk keperluan tampilan portal.</p>` },
+        <p><strong class="text-selaksana-ink">Siapa yang bisa melihat.</strong> Staf biro yang bertugas dan psikolog yang menangani sesi melalui sistem keamanan Row Level Security (RLS).</p>
+        <p><strong class="text-selaksana-ink">Hak klien.</strong> Klien dapat meminta salinan, koreksi, atau penghapusan data non-rekam medis lewat resepsionis di WhatsApp +62 851-6138-2920 atau di.selaksana@gmail.com.</p>` },
       syarat: { badge: 'Legal & etika', title: 'Syarat, Ketentuan & Kebijakan Reschedule', html: `
         <p><strong class="text-selaksana-ink">Pengajuan &amp; konfirmasi.</strong> Permintaan janji temu menjadi jadwal pasti setelah resepsionis mengonfirmasi psikolog, tanggal, dan jam lewat WhatsApp.</p>
         <p><strong class="text-selaksana-ink">Pembayaran.</strong> Detail pembayaran (transfer bank atau QRIS) dikirim saat konfirmasi. Jadwal terkunci setelah pembayaran diterima.</p>
         <p><strong class="text-selaksana-ink">Reschedule.</strong> Gratis jika diajukan maksimal 24 jam sebelum sesi, lewat resepsionis atau Portal Klien.</p>
-        <p><strong class="text-selaksana-ink">Keterlambatan.</strong> Toleransi 10 menit. Waktu sesi tidak diperpanjang untuk keterlambatan klien.</p>
-        <p><strong class="text-selaksana-ink">Kecocokan psikolog.</strong> Jika merasa kurang cocok dengan psikolog yang ditugaskan, sampaikan ke resepsionis. Biro akan meninjau dan menawarkan penugasan ulang bila memungkinkan.</p>` },
+        <p><strong class="text-selaksana-ink">Keterlambatan.</strong> Toleransi 10 menit. Waktu sesi tidak diperpanjang untuk keterlambatan klien.</p>` },
       'artikel-0': { badge: 'Regulasi emosi · 4 menit baca', title: 'Teknik Grounding 5-4-3-2-1 Saat Pikiran Mulai Kewalahan', html: `
-        <p>Saat cemas, perhatian kita sering terlempar ke bayangan masa depan. Grounding membawa perhatian kembali ke saat ini lewat panca indera. Tekniknya sederhana dan bisa dilakukan di mana saja.</p>
+        <p>Saat cemas, perhatian kita sering terlempar ke bayangan masa depan. Grounding membawa perhatian kembali ke saat ini lewat panca indera.</p>
         <ol class="list-decimal pl-5 space-y-1.5">
           <li><strong class="text-selaksana-ink">5 hal yang kamu lihat.</strong> Sebutkan pelan-pelan, misalnya cangkir, jendela, pena.</li>
           <li><strong class="text-selaksana-ink">4 hal yang bisa kamu sentuh.</strong> Rasakan tekstur baju, meja, atau lantai di bawah kaki.</li>
           <li><strong class="text-selaksana-ink">3 hal yang kamu dengar.</strong> Suara kipas, langkah kaki, napasmu sendiri.</li>
           <li><strong class="text-selaksana-ink">2 hal yang kamu cium.</strong> Jika tidak ada, ingat dua aroma yang menenangkan.</li>
           <li><strong class="text-selaksana-ink">1 hal yang kamu rasakan di mulut.</strong> Seteguk air atau sisa rasa teh.</li>
-        </ol>
-        <p>Tarik napas perlahan di antara setiap langkah. Tujuannya bukan menghilangkan cemas, tetapi memberi jeda agar kamu bisa memilih langkah berikutnya.</p>
-        <p>Jika serangan cemas sering muncul atau mengganggu aktivitas harian, bicarakan dengan psikolog. Dalam situasi krisis yang mengancam jiwa, hubungi SEJIWA 119 ext. 8 atau IGD terdekat.</p>` },
+        </ol>` },
       'artikel-1': { badge: 'Panduan sesi · 3 menit baca', title: 'Apa yang Sebenarnya Terjadi di Sesi Konseling Pertama?', html: `
         <p>Banyak orang menunda konseling karena takut harus menceritakan semuanya sekaligus. Sesi pertama tidak berjalan seperti itu.</p>
         <ul class="list-disc pl-5 space-y-1.5">
-          <li><strong class="text-selaksana-ink">Perkenalan &amp; kesepakatan.</strong> Psikolog menjelaskan alur sesi, batas kerahasiaan, dan hakmu, termasuk meminta jeda kapan saja.</li>
-          <li><strong class="text-selaksana-ink">Cerita sebisanya.</strong> Kamu memutuskan seberapa banyak yang dibagikan. Tidak ada cerita yang terlalu kecil atau terlalu berantakan.</li>
-          <li><strong class="text-selaksana-ink">Memetakan tujuan.</strong> Bersama-sama kalian menentukan apa yang ingin berubah dan bagaimana tandanya jika sudah membaik.</li>
-          <li><strong class="text-selaksana-ink">Rencana berikutnya.</strong> Frekuensi sesi dan latihan ringan disepakati sebelum sesi berakhir.</li>
-        </ul>
-        <p>Sesi pertama adalah tempat saling mengenal. Pendampingan yang lebih dalam berjalan pelan, mengikuti kesiapanmu.</p>` },
+          <li><strong class="text-selaksana-ink">Perkenalan &amp; kesepakatan.</strong> Psikolog menjelaskan alur sesi, batas kerahasiaan, dan hakmu.</li>
+          <li><strong class="text-selaksana-ink">Cerita sebisanya.</strong> Kamu memutuskan seberapa banyak yang dibagikan.</li>
+          <li><strong class="text-selaksana-ink">Memetakan tujuan.</strong> Bersama-sama menentukan apa yang ingin berubah.</li>
+        </ul>` },
       'artikel-2': { badge: 'Asesmen & anak · 5 menit baca', title: 'Memahami Hasil Asesmen Minat Bakat & Kesiapan Sekolah Anak', html: `
-        <p>Hasil asesmen psikologis bukan label atau vonis. Ia adalah peta: apa yang sudah kuat, apa yang masih tumbuh, dan dukungan apa yang membantu.</p>
-        <ul class="list-disc pl-5 space-y-1.5">
-          <li><strong class="text-selaksana-ink">Skor adalah satu potongan.</strong> Angka dibaca bersama hasil observasi dan wawancara, bukan berdiri sendiri.</li>
-          <li><strong class="text-selaksana-ink">Profil kekuatan.</strong> Laporan menyoroti potensi anak, termasuk gaya belajar dan minat yang menonjol.</li>
-          <li><strong class="text-selaksana-ink">Area pendampingan.</strong> Bagian yang perlu dukungan dirumuskan sebagai langkah, bukan kekurangan.</li>
-          <li><strong class="text-selaksana-ink">Sesi penjelasan.</strong> Psikolog membahas hasil bersama orang tua dan menjawab pertanyaan sebelum laporan dipakai di sekolah.</li>
-        </ul>
-        <p>Saat membaca laporan, tanyakan: apa yang bisa kami lakukan di rumah minggu ini? Jawabannya lebih berguna daripada membandingkan angka dengan anak lain.</p>` }
+        <p>Hasil asesmen psikologis bukan label atau vonis. Ia adalah peta: apa yang sudah kuat, apa yang masih tumbuh, dan dukungan apa yang membantu.</p>` }
     };
     function openContent(key) {
       const c = CONTENT[key];
@@ -2357,8 +2398,10 @@
     function closeCrisisModal() { hideModal('crisis-modal'); }
 
     /* =====================================================================
-       PORTAL KLIEN
+       9. PORTAL KLIEN FULL-STACK (LOGIN, REGISTRASI, JADWAL, JURNAL, PROFIL)
        ===================================================================== */
+    let clientAuthMode = 'login'; // 'login' | 'register'
+
     function statusBadge(status) {
       const map = {
         menunggu: ['Menunggu penugasan', 'bg-amber-50 text-amber-800 border-amber-200'],
@@ -2369,23 +2412,173 @@
       const [label, cls] = map[status] || map.menunggu;
       return `<span class="inline-flex items-center px-2.5 py-1 rounded-full border text-[11px] font-semibold ${cls}">${label}</span>`;
     }
-    function renderClientPortal() {
+
+    function ensureClientAuthBanner() {
+      const wrapper = document.getElementById('portal-privacy-wrapper');
+      if (!wrapper) return;
+      let banner = document.getElementById('client-auth-box');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'client-auth-box';
+        wrapper.insertBefore(banner, wrapper.children[1]);
+      }
+      if (currentUser) {
+        banner.innerHTML = `
+          <div class="bg-selaksana-plumLight/80 border border-selaksana-plum/20 rounded-2xl p-4 sm:px-6 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span class="text-selaksana-ink">Masuk sebagai akun klien: <strong>${esc(currentUser.email)}</strong></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="renderClientPortal()" class="px-3.5 py-1.5 rounded-full bg-white border border-selaksana-border font-semibold text-selaksana-ink hover:border-selaksana-plum cursor-pointer">Segarkan Status</button>
+              <button onclick="clientLogout()" class="px-3.5 py-1.5 rounded-full bg-selaksana-ink text-white font-semibold hover:bg-selaksana-plum cursor-pointer">Keluar Akun</button>
+            </div>
+          </div>`;
+      } else {
+        banner.innerHTML = `
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border-2 border-selaksana-plum/30 shadow-schedule grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div class="lg:col-span-6 space-y-3">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-selaksana-plumLight text-selaksana-plum text-xs font-semibold">
+                <i data-lucide="user-check" class="w-3.5 h-3.5"></i> Akun Portal Klien
+              </span>
+              <h2 class="font-serif font-semibold text-2xl sm:text-3xl text-selaksana-ink">
+                Masuk atau buat akun untuk menyimpan jadwal &amp; jurnalmu secara permanen
+              </h2>
+              <p class="text-xs sm:text-sm text-selaksana-muted leading-relaxed">
+                Dengan masuk ke akunmu, seluruh permintaan janji temu, nama psikolog yang ditugaskan biro, serta catatan jurnal refleksi tersinkronisasi aman di semua perangkatmu.
+              </p>
+            </div>
+            <div class="lg:col-span-6 bg-selaksana-bg rounded-2xl p-5 sm:p-6 border border-selaksana-border space-y-4">
+              <div class="flex gap-2 p-1 bg-white rounded-full border border-selaksana-border text-xs font-semibold">
+                <button type="button" onclick="switchClientAuthMode('login')" class="flex-1 py-2 rounded-full transition ${clientAuthMode === 'login' ? 'bg-selaksana-plum text-white' : 'text-selaksana-ink'}">Masuk Klien</button>
+                <button type="button" onclick="switchClientAuthMode('register')" class="flex-1 py-2 rounded-full transition ${clientAuthMode === 'register' ? 'bg-selaksana-plum text-white' : 'text-selaksana-ink'}">Daftar Baru</button>
+              </div>
+              <form onsubmit="submitClientAuth(event)" class="space-y-3 text-xs">
+                ${clientAuthMode === 'register' ? `
+                <div>
+                  <label class="block font-semibold text-selaksana-ink mb-1">Nama panggilan / samaran</label>
+                  <input id="c-auth-alias" type="text" required placeholder="Contoh: Maya R." class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum" />
+                </div>` : ''}
+                <div>
+                  <label class="block font-semibold text-selaksana-ink mb-1">Email</label>
+                  <input id="c-auth-email" type="email" required placeholder="nama@email.com" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-selaksana-ink mb-1">Kata sandi (min. 6 karakter)</label>
+                  <input id="c-auth-pass" type="password" required minlength="6" placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-selaksana-border focus:outline-none focus:border-selaksana-plum" />
+                </div>
+                <p id="c-auth-err" class="hidden text-xs font-medium text-rose-700 bg-rose-50 border border-rose-100 rounded-xl px-3 py-2"></p>
+                <button id="c-auth-btn" type="submit" class="w-full py-3 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white font-semibold transition cursor-pointer">
+                  ${clientAuthMode === 'login' ? 'Masuk ke Portal Klien' : 'Buat Akun Klien'}
+                </button>
+              </form>
+            </div>
+          </div>`;
+      }
+    }
+
+    function switchClientAuthMode(mode) {
+      clientAuthMode = mode;
+      ensureClientAuthBanner();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    async function submitClientAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('c-auth-email').value.trim().toLowerCase();
+      const password = document.getElementById('c-auth-pass').value;
+      const alias = document.getElementById('c-auth-alias')?.value.trim() || email.split('@')[0];
+      const errEl = document.getElementById('c-auth-err');
+      const btn = document.getElementById('c-auth-btn');
+      errEl.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Memproses...';
+
+      if (clientAuthMode === 'register') {
+        const { data, error } = await sb.auth.signUp({
+          email,
+          password,
+          options: { data: { alias } }
+        });
+        btn.disabled = false;
+        if (error) {
+          btn.textContent = 'Buat Akun Klien';
+          errEl.textContent = error.message;
+          errEl.classList.remove('hidden');
+          return;
+        }
+        if (data?.user && !data?.session) {
+          showToast('Pendaftaran berhasil! Silakan cek inbox email atau matikan Confirm Email di Supabase Auth.');
+          clientAuthMode = 'login';
+          await renderClientPortal();
+          return;
+        }
+        showToast('Akun berhasil dibuat dan masuk otomatis!');
+      } else {
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        btn.disabled = false;
+        if (error) {
+          btn.textContent = 'Masuk ke Portal Klien';
+          errEl.textContent = 'Email atau kata sandi belum sesuai.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        showToast('Selamat datang kembali di Portal Klien!');
+      }
+
+      await loadCurrentSession();
+      await renderClientPortal();
+    }
+
+    async function clientLogout() {
+      await sb.auth.signOut();
+      currentUser = null;
+      currentProfile = null;
+      clientBookings = [];
+      clientJournals = [];
+      await renderClientPortal();
+      showToast('Kamu telah keluar dari akun Portal Klien.');
+    }
+
+    async function renderClientPortal() {
       const host = document.getElementById('portal-jadwal');
       if (!host) return;
-      const list = loadBookings();
-      const mine = list.find(b => b.id === Store.get(MY_BOOKING_KEY, null));
-      const aliasOverride = Store.get('selaksana.alias', null);
+      await loadCurrentSession();
+      await syncPsychologistsFromDB();
+      ensureClientAuthBanner();
+
+      if (currentUser) {
+        const { data: bRows } = await sb.from('bookings').select('*').eq('client_id', currentUser.id).order('created_at', { ascending: false });
+        clientBookings = (bRows || []).map(rowToBooking);
+        const { data: jRows } = await sb.from('journals').select('*').eq('client_id', currentUser.id).order('created_at', { ascending: false });
+        clientJournals = jRows || [];
+      } else {
+        clientBookings = [];
+        clientJournals = [];
+      }
+
+      const cachedLocal = Store.get(LAST_LOCAL_BOOKING_KEY, null);
       const badge = document.getElementById('portal-badge');
       const aliasEl = document.getElementById('portal-alias-display');
-      let b = mine, isDemo = false;
+
+      let b = clientBookings[0] || cachedLocal;
+      let isDemo = false;
       if (!b) {
         isDemo = true;
-        b = { id: 'CONTOH', alias: aliasOverride || 'Maya R.', service: 'Konseling Individu', mode: 'Online (Video Call)', topic: 'kecemasan', prefDate: addDays(2), prefTime: 'Pagi (09.00–12.00)', psychId: 'nr', sessionDate: addDays(2), sessionTime: '10:30', status: 'dikonfirmasi' };
+        b = { id: 'CONTOH', alias: currentProfile?.alias || 'Maya R.', service: 'Konseling Individu', mode: 'Online (Video Call)', topic: 'kecemasan', prefDate: addDays(2), prefTime: 'Pagi (09.00–12.00)', psychId: 'nr', sessionDate: addDays(2), sessionTime: '10:30', status: 'dikonfirmasi' };
       }
-      aliasEl.textContent = aliasOverride || b.alias;
+
+      const displayAlias = currentProfile?.alias || b.alias || 'Klien';
+      aliasEl.textContent = displayAlias;
+
       const aliasInput = document.getElementById('input-alias-name');
-      if (aliasInput && document.activeElement !== aliasInput) aliasInput.value = aliasOverride || b.alias;
-      badge.textContent = isDemo ? 'Contoh tampilan: belum ada permintaan di perangkat ini' : 'Permintaan ' + b.id;
+      const waInput = document.getElementById('input-alias-wa');
+      const remInput = document.getElementById('input-reminder');
+      if (aliasInput && document.activeElement !== aliasInput) aliasInput.value = displayAlias;
+      if (waInput && document.activeElement !== waInput) waInput.value = currentProfile?.wa_number || b.wa || '';
+      if (remInput && currentProfile?.reminder_pref) remInput.value = currentProfile.reminder_pref;
+
+      badge.textContent = isDemo ? 'Contoh tampilan: belum ada pengajuan janji temu aktif' : 'Permintaan ' + b.id;
 
       const psych = psychById(b.psychId);
       const dur = (SERVICES[b.service] || { min: 60 }).min;
@@ -2408,7 +2601,7 @@
            </div>`
         : `<div class="pt-3 border-t border-selaksana-border flex items-center gap-3">
              <div class="w-10 h-10 rounded-full bg-selaksana-subtle text-selaksana-muted flex items-center justify-center"><i data-lucide="hourglass" class="w-4 h-4"></i></div>
-             <div><p class="text-xs font-semibold text-selaksana-ink">Psikolog sedang ditentukan biro</p><p class="text-[11px] text-selaksana-muted">Nama dan jadwal pasti dikirim lewat WhatsApp setelah dicocokkan.</p></div>
+             <div><p class="text-xs font-semibold text-selaksana-ink">Psikolog sedang ditentukan biro</p><p class="text-[11px] text-selaksana-muted">Nama dan jadwal pasti diperbarui otomatis oleh staf biro di halaman ini.</p></div>
            </div>`;
 
       let side;
@@ -2416,7 +2609,7 @@
         side = `<p class="text-[11px] font-semibold uppercase tracking-wider text-selaksana-muted">Ruang sesi</p>
           <button onclick="showToast('${isDemo ? 'Contoh tampilan. Tautan sesi aktif pada jadwal yang sebenarnya.' : 'Tautan ruang sesi dikirim psikolog lewat WhatsApp sebelum sesi.'}')" class="w-full py-3 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition flex items-center justify-center gap-2 cursor-pointer"><i data-lucide="video" class="w-4 h-4"></i><span>Masuk ruang sesi</span></button>
           <div class="grid grid-cols-2 gap-2 pt-1">
-            <button onclick="openBookingModal('${b.service.replace(/'/g, '')}', { topic: '${b.topic}' })" class="py-2 px-3 rounded-xl bg-white border border-selaksana-border text-[11px] font-semibold text-selaksana-ink hover:border-selaksana-plum cursor-pointer">Ajukan reschedule</button>
+            <button onclick="openBookingModal('${b.service.replace(/'/g, '')}', { topic: '${b.topic}' })" class="py-2 px-3 rounded-xl bg-white border border-selaksana-border text-[11px] font-semibold text-selaksana-ink hover:border-selaksana-plum cursor-pointer">Ajukan jadwal baru</button>
             <a href="${CONSENT_URL}" target="_blank" rel="noopener noreferrer" class="py-2 px-3 rounded-xl bg-white border border-selaksana-border text-[11px] font-semibold text-selaksana-plum hover:border-selaksana-plum inline-flex items-center justify-center gap-1"><span>Informed Consent</span><i data-lucide="external-link" class="w-3 h-3"></i></a>
           </div>`;
       } else if (b.status === 'menunggu') {
@@ -2428,7 +2621,7 @@
           <button onclick="openBookingModal('${b.service.replace(/'/g, '')}')" class="w-full py-3 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition cursor-pointer">Ajukan janji temu baru</button>`;
       }
 
-      const dateLine = b.status === 'dikonfirmasi' || b.status === 'selesai'
+      const dateLine = (b.status === 'dikonfirmasi' || b.status === 'selesai') && b.sessionDate && b.sessionTime
         ? `${fmtDate(b.sessionDate, true)} · ${b.sessionTime.replace(':', '.')}–${endStr} WIB`
         : `Preferensimu: ${fmtDate(b.prefDate, true)}, ${b.prefTime}`;
 
@@ -2446,8 +2639,9 @@
           </div>
           <div class="lg:col-span-4 bg-selaksana-bg rounded-2xl p-5 border border-selaksana-border space-y-3 text-center">${side}</div>
         </div>`;
-      if (window.lucide) lucide.createIcons();
+
       renderJournalCount();
+      if (window.lucide) lucide.createIcons();
     }
 
     function togglePrivacyMask() {
@@ -2458,6 +2652,7 @@
       label.textContent = masked ? 'Tampilkan kembali identitas' : 'Sembunyikan identitas di layar';
       showToast(masked ? 'Mode samar aktif. Arahkan kursor untuk mengintip.' : 'Identitas ditampilkan kembali.');
     }
+
     let selectedMood = null;
     function selectMood(btn, moodName) {
       document.querySelectorAll('.mood-btn').forEach(b => {
@@ -2470,32 +2665,59 @@
       btn.setAttribute('aria-pressed', 'true');
       selectedMood = moodName;
     }
+
     function renderJournalCount() {
-      const n = (Store.get('selaksana.journal', []) || []).length;
+      const n = currentUser ? clientJournals.length : (Store.get('selaksana.journal', []) || []).length;
       const el = document.getElementById('journal-count');
-      if (el) el.textContent = n ? n + ' catatan tersimpan di perangkat ini' : '';
+      if (el) el.textContent = n ? n + (currentUser ? ' catatan tersimpan di akunmu' : ' catatan tersimpan di perangkat ini') : '';
     }
-    function saveReflectionJournal() {
+
+    async function saveReflectionJournal() {
       const ta = document.getElementById('reflection-note');
       const val = ta.value.trim();
       if (!val && !selectedMood) { showToast('Pilih suasana hati atau tulis catatan singkat dulu.'); return; }
-      const j = Store.get('selaksana.journal', []) || [];
-      j.push({ mood: selectedMood, text: val, at: new Date().toISOString() });
-      Store.set('selaksana.journal', j);
+
+      if (currentUser) {
+        const { error } = await sb.from('journals').insert({
+          client_id: currentUser.id,
+          mood: selectedMood || 'Netral',
+          note: val
+        });
+        if (error) { showToast('Gagal menyimpan jurnal: ' + error.message); return; }
+        const { data: jRows } = await sb.from('journals').select('*').eq('client_id', currentUser.id).order('created_at', { ascending: false });
+        clientJournals = jRows || [];
+      } else {
+        const j = Store.get('selaksana.journal', []) || [];
+        j.push({ mood: selectedMood, text: val, at: new Date().toISOString() });
+        Store.set('selaksana.journal', j);
+      }
+
       ta.value = '';
       renderJournalCount();
-      showToast('Catatan refleksi tersimpan secara privat.');
+      showToast('Catatan refleksi berhasil disimpan.');
     }
-    function saveAccountSettings() {
+
+    async function saveAccountSettings() {
       const newAlias = document.getElementById('input-alias-name').value.trim();
       const wa = document.getElementById('input-alias-wa').value.trim();
+      const rem = document.getElementById('input-reminder').value;
       if (wa && !validWA(wa)) { showToast('Nomor WhatsApp belum valid. Contoh: 081234567890.'); return; }
-      if (newAlias) {
-        Store.set('selaksana.alias', newAlias);
-        document.getElementById('portal-alias-display').textContent = newAlias;
+
+      if (currentUser) {
+        const { error } = await sb.from('profiles').update({
+          alias: newAlias || currentProfile?.alias,
+          wa_number: wa,
+          reminder_pref: rem
+        }).eq('id', currentUser.id);
+        if (error) { showToast('Gagal menyimpan pengaturan: ' + error.message); return; }
+        await loadCurrentSession();
+      } else {
+        if (newAlias) Store.set('selaksana.alias', newAlias);
+        Store.set('selaksana.reminder', rem);
       }
-      Store.set('selaksana.reminder', document.getElementById('input-reminder').value);
-      showToast('Pengaturan disimpan.');
+
+      if (newAlias) document.getElementById('portal-alias-display').textContent = newAlias;
+      showToast('Pengaturan profil berhasil disimpan.');
     }
 
     function showToast(msg) {
@@ -2507,29 +2729,14 @@
     }
 
     /* =====================================================================
-       DASBOR STAF: autentikasi
-       Catatan: ini autentikasi sisi-klien untuk prototipe. Untuk produksi,
-       pindahkan verifikasi kredensial dan data ke server (mis. Supabase / Firebase Auth).
+       10. DASBOR STAF FULL-STACK (SUPABASE AUTH & DATABASE REAL-TIME)
        ===================================================================== */
-    const STAFF_ACCOUNTS = [
-      { email: 'jasatenacity@gmail.com', hash: '372c7e13c0cc350be5713e4c7673aead620ce442919e25e5968e375f60b3ac41', name: 'Admin Selaksana', role: 'Koordinator biro' }
-    ];
-    const STAFF_SESSION_KEY = 'selaksana.staff.email';
-    let loginFails = 0, loginLockUntil = 0;
-
-    async function sha256Hex(text) {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-    function currentStaff() {
-      const email = Session.get(STAFF_SESSION_KEY);
-      return STAFF_ACCOUNTS.find(a => a.email === email) || null;
-    }
     function showLoginError(msg) {
       const el = document.getElementById('staff-login-error');
       el.textContent = msg;
       el.classList.remove('hidden');
     }
+
     function toggleStaffPassword() {
       const input = document.getElementById('staff-password');
       const show = input.type === 'password';
@@ -2539,73 +2746,88 @@
       btn.innerHTML = `<i data-lucide="${show ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
       if (window.lucide) lucide.createIcons();
     }
+
     async function submitStaffLogin(e) {
       e.preventDefault();
       const email = document.getElementById('staff-email').value.trim().toLowerCase();
-      const pass = document.getElementById('staff-password').value;
+      const password = document.getElementById('staff-password').value;
       const btn = document.getElementById('staff-login-btn');
       document.getElementById('staff-login-error').classList.add('hidden');
-      if (Date.now() < loginLockUntil) {
-        return showLoginError('Terlalu banyak percobaan. Coba lagi dalam ' + Math.ceil((loginLockUntil - Date.now()) / 1000) + ' detik.');
-      }
-      if (!email || !pass) return showLoginError('Isi email dan kata sandi.');
-      if (!(window.crypto && crypto.subtle)) return showLoginError('Peramban ini tidak mendukung login aman. Buka situs lewat alamat https.');
+
+      if (!email || !password) return showLoginError('Isi alamat email dan kata sandi staf.');
+
       btn.disabled = true;
       btn.classList.add('opacity-70');
-      btn.firstElementChild.textContent = 'Memeriksa…';
-      let acc = null;
-      try {
-        const h = await sha256Hex(email + '|' + pass);
-        acc = STAFF_ACCOUNTS.find(a => a.email === email && a.hash === h) || null;
-      } catch (err) { /* jatuh ke gagal */ }
+      btn.firstElementChild.textContent = 'Memeriksa kredensial…';
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+      if (error || !data?.user) {
+        btn.disabled = false;
+        btn.classList.remove('opacity-70');
+        btn.firstElementChild.textContent = 'Masuk ke dasbor';
+        return showLoginError('Email atau kata sandi tidak cocok (' + (error?.message || 'cek kembali') + ').');
+      }
+
+      // Periksa apakah akun memiliki role = 'staff' di tabel profiles
+      const { data: prof } = await sb.from('profiles').select('*').eq('id', data.user.id).maybeSingle();
       btn.disabled = false;
       btn.classList.remove('opacity-70');
       btn.firstElementChild.textContent = 'Masuk ke dasbor';
-      if (!acc) {
-        loginFails++;
-        if (loginFails >= 5) { loginLockUntil = Date.now() + 30000; loginFails = 0; return showLoginError('Terlalu banyak percobaan. Akses dikunci 30 detik.'); }
-        document.getElementById('staff-password').value = '';
-        document.getElementById('staff-password').focus();
-        return showLoginError('Email atau kata sandi tidak cocok. Periksa lagi dan coba ulang.');
+
+      if (!prof || prof.role !== 'staff') {
+        await sb.auth.signOut();
+        return showLoginError('Login berhasil, tetapi akun ini masih berstatus "client". Buka menu Table Editor -> tabel "profiles" di Supabase, lalu ubah kolom "role" akun ini menjadi "staff".');
       }
-      loginFails = 0;
-      Session.set(STAFF_SESSION_KEY, acc.email);
+
+      currentUser = data.user;
+      currentProfile = prof;
       document.getElementById('staff-password').value = '';
-      renderStaffGate();
-      showToast('Selamat datang, ' + acc.name + '.');
+      await renderStaffGate();
+      showToast('Selamat datang di Dasbor Staf, ' + (prof.alias || prof.email) + '.');
     }
-    function staffLogout() {
-      Session.remove(STAFF_SESSION_KEY);
+
+    async function staffLogout() {
+      await sb.auth.signOut();
+      currentUser = null;
+      currentProfile = null;
       document.getElementById('staff-email').value = '';
-      renderStaffGate();
-      showToast('Kamu sudah keluar dari dasbor.');
+      await renderStaffGate();
+      showToast('Kamu sudah keluar dari dasbor staf.');
     }
-    function renderStaffGate() {
-      const acc = currentStaff();
-      document.getElementById('staff-login').classList.toggle('hidden', !!acc);
-      document.getElementById('staff-dash').classList.toggle('hidden', !acc);
-      if (acc) {
-        document.getElementById('staff-name').textContent = acc.name;
-        document.getElementById('staff-role').textContent = acc.role;
-        document.getElementById('staff-avatar').textContent = acc.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-        refreshBookings();
+
+    async function refreshBookings() {
+      await syncPsychologistsFromDB();
+      const { data, error } = await sb.from('bookings').select('*').order('created_at', { ascending: false });
+      if (!error && Array.isArray(data)) {
+        bookings = data.map(rowToBooking);
+      }
+    }
+
+    async function renderStaffGate() {
+      await loadCurrentSession();
+      const isStaff = currentUser && currentProfile && currentProfile.role === 'staff';
+      document.getElementById('staff-login').classList.toggle('hidden', !!isStaff);
+      document.getElementById('staff-dash').classList.toggle('hidden', !isStaff);
+      if (isStaff) {
+        const staffName = currentProfile.alias || 'Admin Selaksana';
+        document.getElementById('staff-name').textContent = staffName;
+        document.getElementById('staff-role').textContent = 'Koordinator biro';
+        document.getElementById('staff-avatar').textContent = staffName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+        await refreshBookings();
         renderStaff();
       }
       if (window.lucide) lucide.createIcons();
     }
 
     /* =====================================================================
-       DASBOR STAF: data & logika penugasan
+       11. LOGIKA PENUGASAN & MANAJEMEN JADWAL DASBOR STAF
        ===================================================================== */
     const staffState = { tab: 'ringkasan', filter: 'semua', q: '', editing: new Set(), jadwalPsych: 'semua' };
-    let bookings = [];
-    function refreshBookings() { bookings = loadBookings(); }
-    function persistBookings() { saveBookings(bookings); }
-    function isActivePsych(pid) { return (Store.get(PSYCH_ACTIVE_KEY, {}) || {})[pid] !== false; }
-    function setActivePsych(pid, on) {
-      const m = Store.get(PSYCH_ACTIVE_KEY, {}) || {};
-      m[pid] = on;
-      Store.set(PSYCH_ACTIVE_KEY, m);
+
+    function isActivePsych(pid) {
+      const p = psychById(pid);
+      return p ? p.is_active !== false : true;
     }
     function psychLoad(pid) {
       const t = todayISO(), end = addDays(6);
@@ -2628,7 +2850,7 @@
     }
     function pendingCount() { return bookings.filter(b => b.status === 'menunggu').length; }
 
-    function assignBooking(id) {
+    async function assignBooking(id) {
       const b = bookings.find(x => x.id === id);
       if (!b) return;
       const pid = document.getElementById('as-psych-' + id).value;
@@ -2643,29 +2865,50 @@
       const clash = bookings.find(x => x.id !== id && x.psychId === pid && x.status === 'dikonfirmasi' && x.sessionDate === date &&
         timeToMin(x.sessionTime) < h + dur && h < timeToMin(x.sessionTime) + (SERVICES[x.service] || { min: 60 }).min);
       if (clash) return showToast('Bentrok: ' + psychById(pid).short + ' sudah ada sesi ' + clash.sessionTime.replace(':', '.') + ' di tanggal itu.');
-      b.psychId = pid; b.sessionDate = date; b.sessionTime = time; b.status = 'dikonfirmasi';
+
+      const { error } = await sb.from('bookings').update({
+        psych_id: pid,
+        session_date: date,
+        session_time: time,
+        status: 'dikonfirmasi'
+      }).eq('id', id);
+
+      if (error) return showToast('Gagal menyimpan penugasan: ' + error.message);
+
       staffState.editing.delete(id);
-      persistBookings();
+      await refreshBookings();
       renderStaff();
-      showToast(psychById(pid).short + ' ditugaskan untuk ' + b.id + '. Kirim konfirmasi ke klien.');
+      showToast(psychById(pid).short + ' berhasil ditugaskan untuk ' + b.id + '.');
     }
-    function setBookingStatus(id, status) {
+
+    async function setBookingStatus(id, status) {
       const b = bookings.find(x => x.id === id);
       if (!b) return;
       if (status === 'dibatalkan' && !window.confirm('Batalkan permintaan ' + id + '?')) return;
-      b.status = status;
-      if (status === 'menunggu') { b.psychId = null; b.sessionDate = null; b.sessionTime = null; }
-      persistBookings();
+
+      const patch = { status };
+      if (status === 'menunggu') {
+        patch.psych_id = null;
+        patch.session_date = null;
+        patch.session_time = null;
+      }
+      const { error } = await sb.from('bookings').update(patch).eq('id', id);
+      if (error) return showToast('Gagal mengubah status: ' + error.message);
+
+      await refreshBookings();
       renderStaff();
+      showToast('Status permintaan ' + id + ' diperbarui.');
     }
+
     function editAssignment(id) { staffState.editing.add(id); renderStaff(); }
     function cancelEdit(id) { staffState.editing.delete(id); renderStaff(); }
+
     function clientWaLink(b) {
       const p = psychById(b.psychId);
       const msg = `Halo ${b.alias}, terima kasih sudah menghubungi Selaksana.\nPermintaan ${b.id} sudah kami proses:\n- Psikolog: ${p.name}\n- Jadwal: ${fmtDate(b.sessionDate, true)}, ${b.sessionTime.replace(':', '.')} WIB\n- Format: ${b.mode}\n- Layanan: ${b.service}\n\nMohon balas untuk konfirmasi jadwal. Detail pembayaran kami kirim setelahnya. Informed Consent: ${CONSENT_URL}`;
       return `https://wa.me/${waDigits(b.wa)}?text=${encodeURIComponent(msg)}`;
     }
-    function demoWaToast() { showToast('Ini data contoh, tidak ada nomor WhatsApp asli.'); }
+    function demoWaToast() { showToast('Nomor WhatsApp belum valid.'); }
     function staffTab(name) {
       staffState.tab = name;
       renderStaff();
@@ -2680,6 +2923,7 @@
     function setStaffFilter(f) { staffState.filter = f; renderRequestsPane(); if (window.lucide) lucide.createIcons(); }
     function onStaffSearch(v) { staffState.q = v.toLowerCase(); renderRequestList(); if (window.lucide) lucide.createIcons(); }
     function setJadwalPsych(v) { staffState.jadwalPsych = v; renderJadwalPane(); if (window.lucide) lucide.createIcons(); }
+
     function toggleStaffPrivacy() {
       const on = document.getElementById('staff-dash').classList.toggle('staff-privacy');
       document.getElementById('staff-privacy-btn')?.setAttribute('aria-pressed', String(on));
@@ -2687,25 +2931,34 @@
       if (l) l.textContent = on ? 'Tampilkan data klien' : 'Samarkan data klien';
       showToast(on ? 'Data klien disamarkan. Arahkan kursor untuk mengintip.' : 'Data klien ditampilkan.');
     }
-    function togglePsychActive(pid) {
-      setActivePsych(pid, !isActivePsych(pid));
+
+    async function togglePsychActive(pid) {
+      const nextState = !isActivePsych(pid);
+      const { error } = await sb.from('psychologists').update({ is_active: nextState }).eq('id', pid);
+      if (error) return showToast('Gagal memperbarui status psikolog: ' + error.message);
+      const p = psychById(pid);
+      if (p) p.is_active = nextState;
       renderStaff();
-      showToast(psychById(pid).short + (isActivePsych(pid) ? ' kembali menerima klien baru.' : ' tidak menerima klien baru.'));
+      showToast(p.short + (nextState ? ' kembali menerima klien baru.' : ' tidak menerima klien baru.'));
     }
     function setStaffPsychActive(pid) { togglePsychActive(pid); }
-    function resetDemoData() {
-      if (!window.confirm('Setel ulang semua permintaan ke data contoh? Permintaan yang masuk dari formulir akan dihapus.')) return;
-      Store.set(BOOKINGS_KEY, seedBookings());
-      Store.remove(PSYCH_ACTIVE_KEY);
-      Store.remove(MY_BOOKING_KEY);
-      refreshBookings();
-      staffState.editing.clear();
+
+    async function resetDemoData() {
+      if (!window.confirm('Muat data contoh ke dalam database Supabase?')) return;
+      const samples = [
+        { id: 'REQ-1001', alias: 'Dinda A.', wa: '081234567801', service: 'Konseling Individu', mode: 'Online (Video Call)', topic: 'kecemasan', pref_date: nextWorkingDay(1), pref_time: 'Sore (15.00–18.00)', notes: 'Pertama kali konseling.', status: 'menunggu' },
+        { id: 'REQ-1002', alias: 'Rafi & Salsa', wa: '081234567802', service: 'Konseling Pasangan & Keluarga', mode: 'Tatap Muka di Ruang Asoka Bandung', topic: 'relasi', pref_date: nextWorkingDay(2), pref_time: 'Pagi (09.00–12.00)', notes: 'Persiapan pranikah.', status: 'menunggu' },
+        { id: 'REQ-1003', alias: 'Maya R.', wa: '081234567803', service: 'Konseling Individu', mode: 'Online (Video Call)', topic: 'kecemasan', pref_date: nextWorkingDay(2), pref_time: 'Pagi (09.00–12.00)', psych_id: 'nr', session_date: nextWorkingDay(2), session_time: '10:30', status: 'dikonfirmasi' }
+      ];
+      const { error } = await sb.from('bookings').upsert(samples, { onConflict: 'id' });
+      if (error) return showToast('Gagal memuat data contoh: ' + error.message);
+      await refreshBookings();
       renderStaff();
-      showToast('Data contoh disetel ulang.');
+      showToast('Data contoh berhasil ditambahkan ke database Supabase.');
     }
 
     /* =====================================================================
-       DASBOR STAF: render
+       12. RENDER PANEL DASBOR STAF
        ===================================================================== */
     function renderStaff() {
       document.querySelectorAll('[data-stab]').forEach(b => b.classList.toggle('active', b.dataset.stab === staffState.tab));
@@ -2735,30 +2988,35 @@
         <div class="bar-track"><div class="bar-fill ${warn ? 'warn' : ''}" style="width:${pct}%"></div></div></div>`;
     }
     function renderRingkasanPane() {
-      const acc = currentStaff();
       const hr = new Date().getHours();
       const greet = hr < 11 ? 'Selamat pagi' : hr < 15 ? 'Selamat siang' : hr < 18 ? 'Selamat sore' : 'Selamat malam';
       const t = todayISO(), wk = addDays(6);
-      const pending = bookings.filter(b => b.status === 'menunggu').sort((a, c) => a.createdAt.localeCompare(c.createdAt));
+      const pending = bookings.filter(b => b.status === 'menunggu').sort((a, c) => String(a.createdAt).localeCompare(String(c.createdAt)));
       const upcoming = bookings.filter(b => b.status === 'dikonfirmasi' && b.sessionDate >= t);
       const thisWeek = upcoming.filter(b => b.sessionDate <= wk);
       const activePsy = psychologistsData.filter(p => isActivePsych(p.id)).length;
       const done = bookings.filter(b => b.status === 'selesai').length;
       const svcCounts = Object.keys(SERVICES).map(s => [s, bookings.filter(b => b.service === s && b.status !== 'dibatalkan').length]);
       const svcMax = Math.max(1, ...svcCounts.map(x => x[1]));
+      const staffFirst = (currentProfile?.alias || 'Admin').split(' ')[0];
 
       document.getElementById('staff-pane-ringkasan').innerHTML = `
         <div class="space-y-6">
-          <div>
-            <h1 class="font-serif font-semibold text-3xl sm:text-4xl text-selaksana-ink">${greet}, ${esc((acc?.name || 'Staf').split(' ')[0])}.</h1>
-            <p class="text-sm text-selaksana-muted mt-1.5">${pending.length
-              ? `Ada <strong class="text-selaksana-ink">${pending.length} permintaan</strong> yang menunggu penugasan psikolog.`
-              : 'Semua permintaan sudah ditugaskan. Tidak ada yang menunggu.'}</p>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 class="font-serif font-semibold text-3xl sm:text-4xl text-selaksana-ink">${greet}, ${esc(staffFirst)}.</h1>
+              <p class="text-sm text-selaksana-muted mt-1.5">${pending.length
+                ? `Ada <strong class="text-selaksana-ink">${pending.length} permintaan</strong> di database yang menunggu penugasan psikolog.`
+                : 'Semua permintaan sudah ditugaskan. Tidak ada yang menunggu.'}</p>
+            </div>
+            <button onclick="refreshBookings().then(() => { renderStaff(); showToast('Data diperbarui dari Supabase.'); })" class="px-4 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum inline-flex items-center gap-1.5 cursor-pointer">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Segarkan Data</span>
+            </button>
           </div>
           <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
             ${statCard('inbox', 'Menunggu penugasan', pending.length, pending.length ? 'Tertua: ' + timeAgo(pending[0].createdAt) : 'Tidak ada antrean', pending.length > 0)}
             ${statCard('calendar-check', 'Sesi 7 hari ke depan', thisWeek.length, upcoming.length + ' sesi terkonfirmasi total')}
-            ${statCard('circle-check', 'Sesi selesai', done, 'Tercatat di dasbor ini')}
+            ${statCard('circle-check', 'Sesi selesai', done, 'Tercatat di database')}
             ${statCard('users-round', 'Psikolog menerima klien', activePsy + ' / ' + psychologistsData.length, 'Atur di tab Tim psikolog')}
           </div>
           <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
@@ -2771,7 +3029,7 @@
                   <div class="min-w-0"><p class="text-sm font-semibold text-selaksana-ink truncate"><span class="sensitive-data">${esc(b.alias)}</span> <span class="font-normal text-selaksana-muted">· ${esc(b.service)}</span></p>
                   <p class="text-[11px] text-selaksana-muted mt-0.5">${fmtDate(b.prefDate)}, ${esc(b.prefTime)} · disarankan: <strong class="text-selaksana-ink">${s ? psychById(s.id).short : '-'}</strong></p></div>
                   <button onclick="reviewRequest('${b.id}')" class="shrink-0 px-3.5 py-2 rounded-full bg-selaksana-plum hover:bg-selaksana-plumDark text-white text-xs font-semibold transition">Tinjau</button></li>`;
-              }).join('')}</ul>` : `<div class="py-8 text-center text-xs text-selaksana-muted">Antrean kosong. Permintaan baru dari formulir janji temu akan muncul di sini.</div>`}
+              }).join('')}</ul>` : `<div class="py-8 text-center text-xs text-selaksana-muted">Antrean kosong. Klik "Setel ulang data contoh" di menu kiri jika ingin memuat contoh simulasi.</div>`}
             </div>
             <div class="xl:col-span-2 bg-white rounded-3xl border border-selaksana-border shadow-card p-6 space-y-4">
               <div><h2 class="font-serif font-semibold text-xl text-selaksana-ink">Beban psikolog</h2><p class="text-[11px] text-selaksana-muted">Sesi terkonfirmasi 7 hari ke depan, kapasitas ${WEEKLY_CAPACITY}/minggu</p></div>
@@ -2792,7 +3050,7 @@
       document.getElementById('staff-pane-permintaan').innerHTML = `
         <div class="space-y-5">
           <div><h1 class="font-serif font-semibold text-3xl text-selaksana-ink">Permintaan janji temu</h1>
-            <p class="text-sm text-selaksana-muted mt-1">Tentukan psikolog untuk tiap permintaan. Klien tidak memilih sendiri.</p></div>
+            <p class="text-sm text-selaksana-muted mt-1">Tentukan psikolog untuk tiap permintaan. Perubahan langsung tersimpan ke database.</p></div>
           <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div class="flex flex-wrap gap-2">${chips.map(([k, l]) => `<button onclick="setStaffFilter('${k}')" aria-pressed="${staffState.filter === k}" class="px-3.5 py-2 rounded-full text-xs font-semibold border transition ${staffState.filter === k ? 'bg-selaksana-plum text-white border-selaksana-plum' : 'bg-white text-selaksana-ink border-selaksana-border hover:border-selaksana-plum'}">${l} <span class="${staffState.filter === k ? 'text-white/80' : 'text-selaksana-muted'}">${counts[k]}</span></button>`).join('')}</div>
             <div class="relative w-full lg:w-72"><i data-lucide="search" class="w-4 h-4 text-selaksana-muted absolute left-3.5 top-1/2 -translate-y-1/2"></i>
@@ -2835,8 +3093,7 @@
             <p class="text-[11px] text-selaksana-muted">${fmtDate(b.sessionDate, true)} · ${b.sessionTime.replace(':', '.')} WIB</p></div></div>
           <div class="flex flex-wrap gap-2">
             ${b.status === 'dikonfirmasi' ? `
-              ${b.demo ? `<button onclick="demoWaToast()" class="px-3.5 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum inline-flex items-center gap-1.5"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>Kirim WA</button>`
-              : `<a href="${clientWaLink(b)}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>Kirim konfirmasi WA</a>`}
+              <a href="${clientWaLink(b)}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i>Kirim konfirmasi WA</a>
               <button onclick="editAssignment('${b.id}')" class="px-3.5 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">Ubah penugasan</button>
               <button onclick="setBookingStatus('${b.id}','selesai')" class="px-3.5 py-2 rounded-full bg-white border border-selaksana-border text-xs font-semibold text-selaksana-ink hover:border-selaksana-plum">Tandai selesai</button>` : ''}
           </div></div>` : '';
@@ -2847,7 +3104,7 @@
         <article id="req-${b.id}" class="bg-white rounded-3xl border border-selaksana-border shadow-card p-5 sm:p-6 scroll-mt-28">
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
-              <div class="flex flex-wrap items-center gap-2 text-[11px] text-selaksana-muted"><span class="font-semibold text-selaksana-ink">${b.id}</span><span>· masuk ${timeAgo(b.createdAt)}</span>${b.demo ? '<span class="px-2 py-0.5 rounded bg-selaksana-subtle">contoh</span>' : '<span class="px-2 py-0.5 rounded bg-selaksana-plumLight text-selaksana-plum font-semibold">dari formulir</span>'}</div>
+              <div class="flex flex-wrap items-center gap-2 text-[11px] text-selaksana-muted"><span class="font-semibold text-selaksana-ink">${b.id}</span><span>· masuk ${timeAgo(b.createdAt)}</span><span class="px-2 py-0.5 rounded bg-selaksana-plumLight text-selaksana-plum font-semibold">Supabase DB</span></div>
               <h3 class="font-serif font-semibold text-xl text-selaksana-ink mt-1"><span class="sensitive-data">${esc(b.alias)}</span></h3>
             </div>
             ${statusBadge(b.status)}
@@ -2859,13 +3116,14 @@
             <div><dt class="text-selaksana-muted">Preferensi klien</dt><dd class="font-semibold text-selaksana-ink">${fmtDate(b.prefDate)}, ${esc(b.prefTime)}</dd></div>
           </dl>
           <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 mt-3 text-xs text-selaksana-muted">
-            <span>WhatsApp: <span class="sensitive-data text-selaksana-ink font-medium">${b.demo ? '0812-••••-' + b.id.slice(-4) : esc(b.wa)}</span></span>
+            <span>WhatsApp: <span class="sensitive-data text-selaksana-ink font-medium">${esc(b.wa)}</span></span>
             ${b.notes ? `<span class="sensitive-data">Catatan: “${esc(b.notes)}”</span>` : ''}
           </div>
           ${panel}${assigned}
           ${footerActions ? `<div class="mt-3 text-right">${footerActions}</div>` : ''}
         </article>`;
     }
+
     function renderRequestList() {
       const host = document.getElementById('req-list');
       if (!host) return;
@@ -2874,11 +3132,11 @@
       const list = bookings
         .filter(b => staffState.filter === 'semua' || b.status === staffState.filter)
         .filter(b => !q || [b.id, b.alias, b.service, TOPICS[b.topic], b.mode].join(' ').toLowerCase().includes(q))
-        .sort((a, c) => rank[a.status] - rank[c.status] || (a.status === 'menunggu' ? a.createdAt.localeCompare(c.createdAt) : (c.sessionDate || '').localeCompare(a.sessionDate || '')));
+        .sort((a, c) => rank[a.status] - rank[c.status] || (a.status === 'menunggu' ? String(a.createdAt).localeCompare(String(c.createdAt)) : (c.sessionDate || '').localeCompare(a.sessionDate || '')));
       host.innerHTML = list.length ? list.map(requestCard).join('') : `
         <div class="bg-white rounded-3xl border border-selaksana-border p-10 text-center space-y-1.5">
           <p class="font-serif font-semibold text-xl text-selaksana-ink">${q ? 'Tidak ada permintaan yang cocok' : 'Belum ada permintaan di kategori ini'}</p>
-          <p class="text-xs text-selaksana-muted">${q ? 'Coba kata kunci lain atau ubah filter status.' : 'Permintaan baru dari formulir janji temu akan muncul di sini.'}</p></div>`;
+          <p class="text-xs text-selaksana-muted">${q ? 'Coba kata kunci lain atau ubah filter status.' : 'Permintaan baru dari formulir janji temu akan otomatis muncul di sini.'}</p></div>`;
     }
 
     function renderJadwalPane() {
@@ -2888,7 +3146,7 @@
       const upcoming = bookings.filter(b => b.status === 'dikonfirmasi' && b.sessionDate >= t && mine(b))
         .sort((a, c) => (a.sessionDate + a.sessionTime).localeCompare(c.sessionDate + c.sessionTime));
       const recent = bookings.filter(b => b.status === 'selesai' && mine(b))
-        .sort((a, c) => c.sessionDate.localeCompare(a.sessionDate)).slice(0, 5);
+        .sort((a, c) => String(c.sessionDate).localeCompare(String(a.sessionDate))).slice(0, 5);
       const groups = {};
       upcoming.forEach(b => (groups[b.sessionDate] = groups[b.sessionDate] || []).push(b));
       const row = b => {
@@ -2915,7 +3173,7 @@
               <ul class="divide-y divide-selaksana-border/80 mt-2">${groups[d].map(row).join('')}</ul></section>`).join('')
           : `<div class="bg-white rounded-3xl border border-selaksana-border p-10 text-center space-y-1.5"><p class="font-serif font-semibold text-xl text-selaksana-ink">Belum ada sesi terkonfirmasi</p><p class="text-xs text-selaksana-muted">Tugaskan psikolog di tab Permintaan, sesinya akan muncul di sini.</p></div>`}
           ${recent.length ? `<section class="bg-white rounded-3xl border border-selaksana-border shadow-card p-5 sm:p-6"><h2 class="font-serif font-semibold text-lg text-selaksana-ink">Selesai baru-baru ini</h2>
-            <ul class="divide-y divide-selaksana-border/80 mt-2">${recent.map(b => `<li class="py-3 flex items-center justify-between gap-3 text-xs"><span class="min-w-0 truncate"><span class="sensitive-data font-semibold text-selaksana-ink">${esc(b.alias)}</span> <span class="text-selaksana-muted">· ${esc(b.service)}</span></span><span class="shrink-0 text-selaksana-muted">${fmtDate(b.sessionDate)} · ${psychById(b.psychId).short}</span></li>`).join('')}</ul></section>` : ''}
+            <ul class="divide-y divide-selaksana-border/80 mt-2">${recent.map(b => `<li class="py-3 flex items-center justify-between gap-3 text-xs"><span class="min-w-0 truncate"><span class="sensitive-data font-semibold text-selaksana-ink">${esc(b.alias)}</span> <span class="text-selaksana-muted">· ${esc(b.service)}</span></span><span class="shrink-0 text-selaksana-muted">${fmtDate(b.sessionDate)} · ${psychById(b.psychId)?.short || '-'}</span></li>`).join('')}</ul></section>` : ''}
         </div>`;
     }
 
@@ -2923,7 +3181,7 @@
       document.getElementById('staff-pane-tim').innerHTML = `
         <div class="space-y-6">
           <div><h1 class="font-serif font-semibold text-3xl text-selaksana-ink">Tim psikolog</h1>
-            <p class="text-sm text-selaksana-muted mt-1">Matikan "menerima klien baru" untuk mengeluarkan psikolog dari saran penugasan, misalnya saat cuti atau kapasitas penuh.</p></div>
+            <p class="text-sm text-selaksana-muted mt-1">Matikan "menerima klien baru" untuk mengeluarkan psikolog dari saran penugasan (tersimpan di Supabase).</p></div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">${psychologistsData.map(p => {
             const on = isActivePsych(p.id), load = psychLoad(p.id);
             const handled = bookings.filter(b => b.psychId === p.id && (b.status === 'selesai' || b.status === 'dikonfirmasi')).length;
@@ -2945,23 +3203,31 @@
     }
 
     /* =====================================================================
-       INISIALISASI
+       13. INISIALISASI APLIKASI & REALTIME LISTENER
        ===================================================================== */
-    window.addEventListener('storage', e => {
-      if (e.key !== BOOKINGS_KEY) return;
-      const dash = document.getElementById('staff-dash');
-      if (dash && !dash.classList.contains('hidden')) {
-        refreshBookings();
-        renderStaff();
-        showToast('Data permintaan diperbarui dari tab lain.');
-      }
-    });
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       document.querySelectorAll('[data-year]').forEach(el => el.textContent = new Date().getFullYear());
+      await syncPsychologistsFromDB();
+      await loadCurrentSession();
       renderBerandaPsychologists();
       renderCatalogPsychologists();
-      switchPage(pageFromHash(), { fromHash: true });
+      await switchPage(pageFromHash(), { fromHash: true });
       if (window.lucide) lucide.createIcons();
+
+      // Pantau perubahan tabel bookings secara real-time untuk Dasbor Staf & Portal Klien
+      sb.channel('selaksana-live')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, async () => {
+          const dash = document.getElementById('staff-dash');
+          if (dash && !dash.classList.contains('hidden')) {
+            await refreshBookings();
+            renderStaff();
+          }
+          const portal = document.getElementById('page-portal');
+          if (portal && !portal.classList.contains('hidden')) {
+            await renderClientPortal();
+          }
+        })
+        .subscribe();
     });
   </script>
 </body>
