@@ -2210,7 +2210,9 @@
        SUPABASE: koneksi, sesi, data permintaan, realtime
        Kunci publishable aman di sisi klien selama RLS aktif (lihat supabase_schema.sql).
        ===================================================================== */
-    const SUPABASE_URL = 'https://uxqhplbamygjopveifep.supabase.co';
+   const SUPABASE_URL = location.hostname === 'localhost' || location.protocol === 'file:'
+  ? 'https://uxqhplbamygjopveifep.supabase.co'
+  : location.origin + '/api-sb';
     const SUPABASE_KEY = 'sb_publishable_zOLYIBO9nLPX6E21bMzcgg_2MpYaTqu';
     const OFFLINE_MSG = 'Tidak bisa terhubung ke server. Periksa koneksi internet lalu muat ulang halaman.';
     const SCHEMA_MSG = 'Skema database belum dipasang. Jalankan supabase_schema.sql di SQL Editor Supabase.';
